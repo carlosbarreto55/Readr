@@ -10,12 +10,24 @@ import SwiftUI
 @main
 struct ReadrApp: App {
     /// Built once, for the lifetime of the process.
-    private let container = AppContainer.live()
+    ///
+    /// Held as a `Result` so that a store that cannot be opened is shown to the
+    /// reader rather than resolved by deleting their library.
+    private let container: Result<AppContainer, any Error>
+
+    init() {
+        container = Result { try AppContainer.live() }
+    }
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
-                .environment(\.appContainer, container)
+            switch container {
+            case .success(let container):
+                RootTabView()
+                    .environment(\.appContainer, container)
+            case .failure(let error):
+                StoreUnavailableView(error: error)
+            }
         }
     }
 }
