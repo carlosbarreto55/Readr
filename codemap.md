@@ -5,11 +5,16 @@ entry points, directory responsibilities, and implementation locations. Use
 `architecture.md` for normative layer rules, contracts, invariants, and
 architectural decisions.
 
-> **Foundation and persistence.** `Domain/`, `Core/`, `Data/Source/`,
-> `Data/Local/Database/`, `Data/Local/Prefs/`, `Data/Repository/`, `UI/Theme/`, and
-> `UI/Navigation/` are implemented and tested. Every other directory below exists,
-> is documented, and is empty. Each directory's `codemap.md` states what it is
-> *for*; `openspec/specs/` states how it must *behave*.
+> **Foundation, persistence, and the source runtime.** `Domain/`, `Core/`,
+> `Data/Source/`, `Data/Local/Database/`, `Data/Local/Prefs/`, `Data/Repository/`,
+> `UI/Theme/`, and `UI/Navigation/` are implemented and tested. Every other
+> directory below exists, is documented, and is empty. Each directory's
+> `codemap.md` states what it is *for*; `openspec/specs/` states how it must
+> *behave*.
+>
+> The runtime a site plugin needs now exists — fetching, parsing, caching, paging,
+> and the detail merge — but **no plugin does**. `liveSources()` returns nothing,
+> so nothing in the shipped app reaches any of it yet.
 
 ## Project Responsibility
 

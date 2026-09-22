@@ -4,11 +4,11 @@ Swift Testing (`import Testing`), one suite per type under test.
 
 | Path | Contents |
 | --- | --- |
-| `Core/` | `stableHash64` and `computeSourceID` guard rails |
-| `Domain/` | Model identity, content shapes, catalog paging values, filters |
-| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository, settings, and store survival |
+| `Core/` | `stableHash64` and `computeSourceID` guard rails, the metadata cache, cache keys, and the catalog pager |
+| `Domain/` | Model identity, content shapes, catalog paging values, filters, and the detail merge |
+| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository, settings, store survival, the HTTP client, `HTMLSource`, and the catalog repository |
 | `UI/` | Route identity and per-tab navigation paths |
-| `Support/` | `StubSource` — a `Source` that contacts nothing |
+| `Support/` | `StubSource` — a `Source` that contacts nothing — and `StubURLProtocol` |
 | `Fixtures/<sitename>/` | Saved HTML captured from real pages, one directory per source |
 
 Testing approach:
@@ -31,3 +31,21 @@ the first one extends, and its doc comment says how.
 
 Repository tests run against an in-memory `ModelContainer`. Settings tests build a
 `UserDefaults` suite of their own, so a run leaves nothing behind for the next.
+
+`StubURLProtocol` answers from a registered table and records what was requested.
+Recording is what makes the negative assertions possible: a cache hit is proved by
+a request that did *not* happen, and the concurrency bound by a peak that was
+never exceeded. A URL nothing registered answers 599 rather than an empty body, so
+a test that forgot a stub fails loudly instead of looking like a parse failure.
+
+Suites that use it are `.serialized` — `URLProtocol` is instantiated by the
+loading system, so the registry has to be reachable statically.
+
+`HTMLSourceTests` drives a test-only subclass over hand-written markup rather than
+a real plugin. It tests the base type, and a real site's selectors would make it
+fail whenever that site changed, for reasons that have nothing to do with the code
+under test. Real fixtures belong to the plugin suites in `Fixtures/<sitename>/`.
+
+One test in it asserts that parsing did not run on the main actor. Nothing fails
+if that regresses — the UI just stutters — so it is the only thing that would
+catch it.

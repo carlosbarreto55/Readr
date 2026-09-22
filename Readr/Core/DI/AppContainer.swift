@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UIKit
 
 /// The composition root.
 ///
@@ -24,18 +25,27 @@ public final class AppContainer: Sendable {
 
     public let library: any LibraryRepository
     public let settings: any SettingsStore
+    public let catalog: any CatalogRepository
+
+    /// The one outbound request path. Held here so every source shares one
+    /// concurrency budget per host; a source that built its own would get a
+    /// second full budget and quietly double what the site sees.
+    public let http: HTTPClient
 
     public init(
         urlSession: URLSession = .shared,
         sources: SourceRegistry,
         modelContainer: ModelContainer,
-        settings: any SettingsStore = UserDefaultsSettingsStore()
+        settings: any SettingsStore = UserDefaultsSettingsStore(),
+        http: HTTPClient? = nil
     ) {
         self.urlSession = urlSession
         self.sources = sources
         self.modelContainer = modelContainer
         self.settings = settings
         self.library = SwiftDataLibraryRepository(modelContainer: modelContainer)
+        self.http = http ?? HTTPClient(session: urlSession)
+        self.catalog = DefaultCatalogRepository(registry: sources)
     }
 
     /// The container the app runs with.
@@ -44,7 +54,36 @@ public final class AppContainer: Sendable {
     ///   deleting the store to recover is forbidden, because it destroys the
     ///   reader's library and every chapter of progress they have.
     public static func live() throws -> AppContainer {
-        AppContainer(sources: SourceRegistry(liveSources()), modelContainer: try makeStore())
+        let http = HTTPClient()
+        let container = AppContainer(
+            sources: SourceRegistry(liveSources(http: http)),
+            modelContainer: try makeStore(),
+            http: http
+        )
+        // An unstructured task continues for the process lifetime even though
+        // its handle is not retained. It captures only the catalog repository,
+        // so it cannot keep the composition root alive beyond the app itself.
+        _ = container.clearCachesOnMemoryPressure()
+        return container
+    }
+
+    /// Drops every cached source response.
+    ///
+    /// `source-metadata-cache` requires a memory warning to clear the caches and
+    /// to leave persisted data alone. The observer is registered here rather than
+    /// inside the cache so the cache stays a plain value with no UIKit import and
+    /// no lifecycle of its own — and so clearing it in a test needs no fake
+    /// notification.
+    public func clearCachesOnMemoryPressure() -> Task<Void, Never> {
+        let catalog = self.catalog
+        let notifications = NotificationCenter.default.notifications(
+            named: UIApplication.didReceiveMemoryWarningNotification
+        )
+        return Task {
+            for await _ in notifications {
+                await catalog.clearCaches()
+            }
+        }
     }
 
     /// A container backed by an in-memory store, for previews and tests.
