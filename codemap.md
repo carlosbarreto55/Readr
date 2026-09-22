@@ -53,6 +53,9 @@ remote content.
 
 ## Architecture Snapshot
 
+*Non-normative summary for orientation. `architecture.md` is authoritative for
+every rule below; where the two disagree, `architecture.md` wins.*
+
 - **Presentation model:** each screen is four files — `Screen` + `Content` + `Model` + `State`.
 - **State management:** `@Observable @MainActor` models expose `state`, an `Effect` stream, and `onAction(_:)`.
 - **Domain boundary:** `Domain/` is framework-free — immutable `Sendable` structs and protocols only.
