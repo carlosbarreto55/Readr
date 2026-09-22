@@ -1,0 +1,108 @@
+# unified-reader-screen
+
+## Purpose
+
+Defines the single Reader destination that serves both novel and manhwa content,
+its two renderers, and the immersive controls they share.
+
+## Requirements
+
+### Requirement: Both content types SHALL use one Reader destination
+
+Novel and manhwa chapters MUST open the same Reader destination, screen, model,
+and state. The destination MUST carry source ID, series URL, chapter URL, and
+content type.
+
+#### Scenario: A novel chapter opens
+
+- **WHEN** the user selects a chapter from a novel series
+- **THEN** navigation SHALL open the shared Reader destination with
+  `ContentType.novel`
+
+#### Scenario: A manhwa chapter opens
+
+- **WHEN** the user selects a chapter from a manhwa series
+- **THEN** navigation SHALL open the same Reader destination with
+  `ContentType.manhwa`
+
+#### Scenario: The model initializes from route context
+
+- **WHEN** the Reader model is created
+- **THEN** it SHALL initialize from source ID, series URL, chapter URL, and
+  content type
+- **AND** it SHALL NOT access `SourceRegistry` or a concrete source
+
+### Requirement: Reader SHALL render exactly the two content shapes
+
+`.text(html:)` MUST render through the attributed-text renderer and
+`.pages(imageURLs:)` through the image-page renderer.
+
+#### Scenario: Text content loads
+
+- **WHEN** the chapter repository returns `.text(html:)`
+- **THEN** the Reader SHALL render it as attributed text honoring Dynamic Type
+  and the selected reader theme
+
+#### Scenario: Page content loads
+
+- **WHEN** the chapter repository returns `.pages(imageURLs:)`
+- **THEN** the Reader SHALL display the images in reading order
+
+#### Scenario: Route type and content disagree
+
+- **WHEN** loaded content does not match the route's content type
+- **THEN** the Reader SHALL perform one forced network fetch bypassing downloaded
+  content
+- **AND** it SHALL NOT render the mismatched payload
+
+#### Scenario: Forced content still disagrees
+
+- **WHEN** the forced fetch still does not match the route content type
+- **THEN** the Reader SHALL show a retryable unexpected-content error
+
+### Requirement: Reader SHALL provide shared immersive controls
+
+Both renderers MUST use the same tap-to-toggle overlay chrome offering back,
+previous chapter, next chapter, chapter list, download, and progress.
+
+#### Scenario: The reading surface is tapped
+
+- **WHEN** the user taps the reading surface
+- **THEN** the top and bottom controls SHALL toggle visibility
+
+#### Scenario: Controls are hidden
+
+- **WHEN** controls are hidden
+- **THEN** the status bar and home indicator SHALL also be hidden
+
+#### Scenario: The first chapter is open
+
+- **WHEN** the current chapter is the first in the series
+- **THEN** the previous-chapter control SHALL be disabled rather than absent
+
+### Requirement: Reader gestures SHALL NOT conflict with system gestures
+
+A horizontal paging gesture MUST NOT begin within the leading screen-edge region
+reserved for the system back gesture.
+
+#### Scenario: The user swipes from the leading edge
+
+- **WHEN** a swipe begins at the leading screen edge
+- **THEN** the system back gesture SHALL take precedence
+- **AND** the Reader SHALL NOT treat it as a page turn
+
+### Requirement: Reading progress SHALL be recorded
+
+Progress MUST be persisted per chapter as the user reads, and a chapter MUST be
+marked read on completion.
+
+#### Scenario: The user reads partway
+
+- **WHEN** the user scrolls or pages partway through a chapter and leaves
+- **THEN** the position SHALL be persisted
+- **AND** reopening the chapter SHALL restore it
+
+#### Scenario: The user reaches the end
+
+- **WHEN** the user reaches the end of a chapter
+- **THEN** it SHALL be marked read
