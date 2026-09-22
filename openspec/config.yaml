@@ -31,7 +31,7 @@ rules:
   proposal:
     - State the user-visible outcome, not the implementation.
     - Include a "Non-goals" section.
-  spec:
+  specs:
     - Requirements use SHALL/MUST. Every requirement carries at least one scenario.
     - Scenarios are WHEN/THEN, written against observable behavior.
     - Never restate an architecture.md invariant; reference it instead.
