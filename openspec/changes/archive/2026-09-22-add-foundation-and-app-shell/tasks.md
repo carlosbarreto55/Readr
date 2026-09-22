@@ -117,6 +117,12 @@ beyond Foundation.
 - [x] 9.3 Launch in the simulator: four tabs, Library selected, each placeholder
       naming its feature, verified at the default and at
       `accessibility-extra-extra-large` with no clipping
-- [ ] 9.4 Run the `reviewer` lane over the diff against the twelve invariants
-- [ ] 9.5 `openspec archive add-foundation-and-app-shell` so `app-shell-navigation`
+- [x] 9.4 Run the `reviewer` lane over the diff against the twelve invariants.
+      Clean on all twelve. It found that `architecture.md` §4.1 documented the
+      hash input as `"\(name)/\(lang)/\(type)"` while the code uses
+      `type.rawValue` — byte-identical today, so the guard rail is blind to the
+      substitution — and that `name` and `lang` were undeclared persisted format.
+      Both are now fixed and recorded. Three spec and proposal overclaims were
+      also corrected before archiving made them normative
+- [x] 9.5 `openspec archive add-foundation-and-app-shell` so `app-shell-navigation`
       becomes normative
