@@ -115,4 +115,4 @@ All files in this section live in `Readr/Data/Source/`.
 - [x] 9.3 Prove invariant 7 mechanically: no `DispatchSemaphore` and no `.wait()`
       anywhere under `Readr/`
 - [x] 9.4 Run the `reviewer` lane over the diff against the twelve invariants
-- [ ] 9.5 `openspec archive add-source-runtime`
+- [x] 9.5 `openspec archive add-source-runtime`
