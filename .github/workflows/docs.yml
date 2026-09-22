@@ -1,0 +1,51 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  specs:
+    name: Validate specs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install OpenSpec
+        run: npm install -g @fission-ai/openspec
+
+      - name: Validate all specs
+        run: openspec validate --all
+
+  links:
+    name: Check documentation links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check relative links resolve
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r doc; do
+            dir=$(dirname "$doc")
+            # Extract relative markdown link targets, ignoring URLs and anchors.
+            grep -oE '\]\([^)#]+\)' "$doc" 2>/dev/null \
+              | sed -E 's/^\]\(//; s/\)$//' \
+              | grep -vE '^[a-z]+:' \
+              | while IFS= read -r target; do
+                  if [ ! -e "$dir/$target" ]; then
+                    echo "::error file=$doc::broken link -> $target"
+                    exit 1
+                  fi
+                done || status=1
+          done < <(find . -name '*.md' -not -path './.git/*')
+          exit $status
+
+# No build job yet: the repository is a documented skeleton. A macOS build job
+# arrives with the first implementation change.
