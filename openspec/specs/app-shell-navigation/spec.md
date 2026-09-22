@@ -1,8 +1,13 @@
-# app-shell-navigation Specification
+# app-shell-navigation
 
 ## Purpose
-TBD - created by archiving change add-foundation-and-app-shell. Update Purpose after archive.
+
+Defines the app's four top-level destinations, how each keeps its own navigation
+path, what a route must carry, and how a destination whose feature is not built
+yet presents itself.
+
 ## Requirements
+
 ### Requirement: The app SHALL present four top-level destinations
 
 Launching Readr MUST present Library, Browse, Downloads, and Settings as
