@@ -11,9 +11,11 @@ Use this file for repo-specific rules and routing only.
 - Read `codemap.md` for repository structure, entry points, and directory maps.
 - Read a folder's `codemap.md` for local implementation details inside that area.
 
-> **The repository is a skeleton.** `Readr/ReadrApp.swift` is the only Swift file.
-> Every directory below exists and is documented, but empty. The specs in
-> `openspec/specs/` define what goes in them.
+> **The foundation is in place; the features are not.** The domain vocabulary, the
+> `Source` contract, `computeSourceID`, the composition root, the theme, and the
+> four-tab app shell exist and are tested. No site plugin, no persistence, and no
+> real screen exists yet. The specs in `openspec/specs/` define what goes in the
+> directories that are still empty.
 
 ## Non-negotiables
 

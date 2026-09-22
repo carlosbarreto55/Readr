@@ -1,17 +1,16 @@
 # Codemap: `UI/Theme/`
 
-> **No implementation yet.**
-
 The only place hardcoded colors, spacing values, and typography constants may
 appear.
 
-Planned contents:
-
 | File | Responsibility |
 | --- | --- |
-| `Palette.swift` | Semantic colors, light and dark |
-| `Spacing.swift` | The spacing scale |
-| `Typography.swift` | Dynamic Type text styles, including reader themes |
+| `Palette.swift` | Semantic colors. System-backed, so light and dark follow without a second palette to maintain. |
+| `Spacing.swift` | The spacing scale, plus `screenMargin`. |
+| `Typography.swift` | Named `Font` values, every one built from a text style. |
 
-Reader themes (light, sepia, dark, black) are theme data, not reader logic.
-Typography must scale with Dynamic Type — fixed point sizes are a bug here.
+Every entry in `Typography` is a `Font.TextStyle`, never a point size. Readr is a
+reading app: a fixed size is a bug, not a style choice.
+
+Planned: reader themes (light, sepia, dark, black) land here as theme data, not
+reader logic, when the Reader is built.

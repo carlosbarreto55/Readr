@@ -1,6 +1,8 @@
 # Codemap: `Readr/`
 
-> **Skeleton.** `ReadrApp.swift` is the only Swift file in this tree.
+> **Foundation.** `Core/`, `Domain/Model/`, `Data/Source/`, `UI/Theme/`, and
+> `UI/Navigation/` hold code. `Data/Repository/`, `Data/Local/`, `Sources/`,
+> `Background/`, and every feature directory under `UI/` are still empty.
 
 Application source root. Every subdirectory maps to a layer in
 `architecture.md` §3.

@@ -8,8 +8,10 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: skeleton.** The rules below are binding, but almost none of them are
-> implemented yet. `Readr/ReadrApp.swift` is the only Swift file in the repository.
+> **Status: foundation.** The rules below are binding. The contracts they govern —
+> domain models, the `Source` protocol, source identity, the composition root, and
+> the app shell — are implemented. The layers those contracts feed (persistence,
+> site plugins, screens, downloads) are not.
 
 ---
 
@@ -134,9 +136,24 @@ empty.
 
 `computeSourceID(name:lang:type:)` must therefore use an explicit, specified
 algorithm — FNV-1a 64 or the leading 8 bytes of SHA-256 over
-`"\(name)/\(lang)/\(type)"` — and must be covered by a test asserting a hardcoded
-expected value for a known input. That test is the guard rail; it must never be
-updated to match changed output.
+`"\(name)/\(lang)/\(type.rawValue)"` — and must be covered by a test asserting a
+hardcoded expected value for a known input. That test is the guard rail; it must
+never be updated to match changed output.
+
+`type.rawValue`, never `\(type)`. The two produce identical bytes today, so the
+guard-rail test cannot tell them apart, and substituting one for the other would
+pass every test in the repository. They diverge the moment a `ContentType` case is
+renamed — at which point the interpolated form re-keys every stored series,
+chapter, and downloaded file, and the guard rail still passes because its input
+strings never changed. The raw values are frozen for this reason.
+
+The same applies to the other two components, and less visibly. `name` and `lang`
+are not display strings that happen to be hashed; they are persisted format.
+Renaming a shipped source from `"Novel Site"` to `"NovelSite"` orphans that site's
+entire library exactly as a hash change would. `computeSourceID`'s own test cannot
+catch this, because each plugin derives its `id` from its own strings — so **every
+shipped plugin carries a test asserting its own hardcoded `id`**, and a shipped
+source's `name` and `lang` are frozen once released.
 
 Source IDs are computed, never hand-picked.
 

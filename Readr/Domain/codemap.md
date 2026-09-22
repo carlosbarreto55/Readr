@@ -1,6 +1,8 @@
 # Codemap: `Domain/`
 
-> **No implementation yet.**
+> **Models implemented; repository protocols not yet.** Each repository contract
+> arrives with the change that implements it — a protocol with no caller is a
+> guess about a milestone that has not been designed.
 
 The framework-free core. Nothing here imports SwiftUI, SwiftData, `URLSession`,
 or SwiftSoup — that is invariant 1, and it is what lets domain tests run without

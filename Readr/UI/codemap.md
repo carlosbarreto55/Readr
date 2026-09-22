@@ -1,6 +1,7 @@
 # Codemap: `UI/`
 
-> **No screens yet.** The app currently shows a placeholder root view.
+> **Shell and theme implemented; no feature screens yet.** Every tab shows a
+> placeholder naming the feature it will hold.
 
 SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 

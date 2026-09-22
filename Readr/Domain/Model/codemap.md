@@ -1,27 +1,40 @@
 # Codemap: `Domain/Model/`
 
-> **No implementation yet.**
-
 Immutable `Sendable` structs and enums. No reference types, no persistence
-annotations, no framework imports.
-
-Planned contents:
+annotations, no framework imports beyond Foundation.
 
 | Type | Shape |
 | --- | --- |
-| `Series` | struct — identity is `(sourceID, url)` |
-| `Chapter` | struct — identity is `(sourceID, url)` |
+| `Series` | struct — identity is `(sourceID, url)`, exposed as `SeriesID` |
+| `Chapter` | struct — identity is `(sourceID, url)`, exposed as `ChapterID` |
 | `ChapterContent` | enum — exactly `.text(html:)` and `.pages(imageURLs:)` |
-| `ChapterWithState` | struct — chapter plus read/download state |
-| `ContentType` | enum — `.novel`, `.manhwa` |
+| `ContentType` | enum — `.novel`, `.manhwa`, with frozen raw values |
 | `SeriesStatus` | enum — ongoing, completed, hiatus, cancelled, unknown |
 | `SeriesPage` | struct — one page of catalog results plus a has-more flag |
 | `SourceInfo` | struct — source metadata exposed to the UI |
 | `Filter` / `FilterList` | catalog filtering primitives |
+
+Planned, each arriving with the change that needs it:
+
+| Type | Shape |
+| --- | --- |
+| `ChapterWithState` | struct — chapter plus read/download state |
 | `DownloadItem` / `DownloadState` | queue entry and its lifecycle |
 | `AppSettings` / `AppTheme` | user preferences |
 | `ManhwaLayout` / `ManhwaZoom` | reader display preferences |
 | `LibrarySearchResult` | a Spotlight or in-app search hit |
 
+`Series` and `Chapter` define equality and hashing on `(sourceID, url)` alone, so
+refreshed metadata never changes which record a value refers to.
+
+That propagates into containers: `[Series] == [Series]` and `SeriesPage ==
+SeriesPage` also ignore metadata. **Change detection must compare fields
+explicitly.** A repository written as `guard fetched != cached else { return }`
+would silently discard refreshed titles, covers, and statuses, and a test
+comparing entries with `==` would agree with it.
+
 `ChapterContent` having exactly two cases is invariant 5. Adding a third case is
 an architecture change, not a feature.
+
+`ContentType`'s raw values are written out rather than defaulted, because
+`computeSourceID` hashes them — see `Core/Util/codemap.md`.

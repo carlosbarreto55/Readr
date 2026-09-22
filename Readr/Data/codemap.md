@@ -1,6 +1,6 @@
 # Codemap: `Data/`
 
-> **No implementation yet.**
+> **`Source/` implemented.** `Repository/` and `Local/` are still empty.
 
 Everything that talks to the outside world, plus the orchestration that decides
 when to.

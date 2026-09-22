@@ -5,9 +5,10 @@ entry points, directory responsibilities, and implementation locations. Use
 `architecture.md` for normative layer rules, contracts, invariants, and
 architectural decisions.
 
-> **Skeleton.** The directory tree below exists and is documented. Apart from
-> `Readr/ReadrApp.swift`, it is empty. Each directory's `codemap.md` states what
-> it is *for*; `openspec/specs/` states how it must *behave*.
+> **Foundation.** `Domain/Model/`, `Core/`, `Data/Source/`, `UI/Theme/`, and
+> `UI/Navigation/` are implemented and tested. Every other directory below exists,
+> is documented, and is empty. Each directory's `codemap.md` states what it is
+> *for*; `openspec/specs/` states how it must *behave*.
 
 ## Project Responsibility
 

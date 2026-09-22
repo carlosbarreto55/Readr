@@ -1,10 +1,14 @@
 # Codemap: `ReadrTests/`
 
-> **No tests yet.** The target exists and builds so the verification lane is real
-> from day one.
+Swift Testing (`import Testing`), one suite per type under test.
 
 | Path | Contents |
 | --- | --- |
+| `Core/` | `stableHash64` and `computeSourceID` guard rails |
+| `Domain/` | Model identity, content shapes, catalog paging values, filters |
+| `Data/` | `SourceRegistry` lookup and projection |
+| `UI/` | Route identity and per-tab navigation paths |
+| `Support/` | `StubSource` — a `Source` that contacts nothing |
 | `Fixtures/<sitename>/` | Saved HTML captured from real pages, one directory per source |
 
 Testing approach:
@@ -16,6 +20,6 @@ Testing approach:
 | SwiftData migrations | Open a store written by the previous schema, assert data survived |
 | `computeSourceID` | Hardcoded expected value for a known input |
 
-The `computeSourceID` test is a guard rail, not a characterization test. If it
-fails, the hash changed and every persisted library would be orphaned — fix the
-code, never the expectation.
+The `computeSourceID` and `stableHash64` tests are guard rails, not
+characterization tests. If one fails, the hash changed and every persisted library
+would be orphaned — fix the code, never the expectation.

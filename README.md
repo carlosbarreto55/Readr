@@ -11,10 +11,12 @@ app doesn't know or care which site it's talking to.
 
 ## Status
 
-**Skeleton.** The architecture, the capability specs, and the agent
-infrastructure are written. The app is not. `Readr/ReadrApp.swift` is the only
-Swift file in the repository — everything else is documentation describing what
-goes where and how it must behave.
+**Foundation.** The architecture, the capability specs, and the agent
+infrastructure are written, and the foundation they describe is now built: the
+framework-free domain vocabulary, the `Source` plugin contract, stable source
+identity, the composition root, the theme, and the four-tab app shell — all under
+test. What remains unbuilt is everything a reader would recognise as the app:
+persistence, site plugins, screens, the reader itself, and downloads.
 
 ---
 
