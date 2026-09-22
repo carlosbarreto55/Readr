@@ -88,6 +88,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.opus.readr.tests
+        # The test bundle needs an Info.plist to be code signed. It has no
+        # properties worth hand-maintaining, so let the toolchain generate it.
+        GENERATE_INFOPLIST_FILE: YES
 
 schemes:
   Readr:
