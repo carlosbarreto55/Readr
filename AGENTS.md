@@ -11,11 +11,12 @@ Use this file for repo-specific rules and routing only.
 - Read `codemap.md` for repository structure, entry points, and directory maps.
 - Read a folder's `codemap.md` for local implementation details inside that area.
 
-> **The foundation is in place; the features are not.** The domain vocabulary, the
-> `Source` contract, `computeSourceID`, the composition root, the theme, and the
-> four-tab app shell exist and are tested. No site plugin, no persistence, and no
-> real screen exists yet. The specs in `openspec/specs/` define what goes in the
-> directories that are still empty.
+> **Foundation and persistence are in place; the features are not.** The domain
+> vocabulary, the `Source` contract, `computeSourceID`, the composition root, the
+> theme, the four-tab app shell, schema v1 with its migration plan, the library
+> repository, and the settings store all exist and are tested. No site plugin and
+> no real screen exists yet, and nothing is downloaded or indexed. The specs in
+> `openspec/specs/` define what goes in the directories that are still empty.
 
 ## Non-negotiables
 

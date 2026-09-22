@@ -8,10 +8,10 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation.** The rules below are binding. The contracts they govern —
-> domain models, the `Source` protocol, source identity, the composition root, and
-> the app shell — are implemented. The layers those contracts feed (persistence,
-> site plugins, screens, downloads) are not.
+> **Status: foundation and persistence.** The rules below are binding. The
+> contracts they govern — domain models, the `Source` protocol, source identity,
+> the composition root, the app shell, and the SwiftData store with its migration
+> plan — are implemented. Site plugins, screens, downloads, and Spotlight are not.
 
 ---
 

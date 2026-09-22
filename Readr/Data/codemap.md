@@ -1,6 +1,7 @@
 # Codemap: `Data/`
 
-> **`Source/` implemented.** `Repository/` and `Local/` are still empty.
+> **`Source/`, `Repository/`, `Local/Database/`, and `Local/Prefs/` implemented.**
+> `Local/Filesystem/` and `Local/Search/` are still empty.
 
 Everything that talks to the outside world, plus the orchestration that decides
 when to.

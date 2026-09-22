@@ -1,7 +1,9 @@
 # SwiftData rules
 
-- `@Model` classes are persistence types. They never leave this directory.
-  Repositories map them to and from immutable domain `struct`s.
+- `@Model` classes are persistence types. They never cross the **repository
+  boundary**: a repository implementation may name them, and nothing above one
+  may. Repositories map them to and from immutable domain `struct`s. See
+  `architecture.md` §6.1.
 - Domain models never import SwiftData; `@Model` types never appear in a
   repository protocol signature.
 - Every schema change adds a new `VersionedSchema` and a `SchemaMigrationPlan`

@@ -1,19 +1,20 @@
 # Codemap: `Data/Repository/`
 
-> **No implementation yet.**
-
 Repository implementations. These coordinate `SourceRegistry`, SwiftData,
 the filesystem, and Spotlight — and they are the only layer permitted to.
 
-Planned contents:
-
 | File | Responsibility |
 | --- | --- |
-| `SeriesRepositoryImpl.swift` | Library membership, catalog paging, detail refresh, blank-title repair |
-| `ChapterRepositoryImpl.swift` | Chapter list refresh with state preservation, content resolution (downloaded before remote) |
-| `DownloadRepositoryImpl.swift` | Sequential queue, progress reporting, stored payload lookup |
-| `SettingsRepositoryImpl.swift` | Preferences, mapped to and from `AppSettings` |
-| `SourceRepositoryImpl.swift` | Source listing and cached source metadata |
+| `SwiftDataLibraryRepository.swift` | `LibraryRepository` over SwiftData: saved series and the chapter state belonging to them. |
 
-Error policy lives here. Sources throw; repositories decide what that means for
-the user.
+A `@ModelActor`, so every access runs on its own `ModelContext` off the main actor.
+Entities never leave it — each method maps to domain values before returning.
+
+Saving a series that is already saved refreshes its metadata and leaves the
+reader's own state alone: when it was added, when it was last read, and the
+progress recorded against its chapters. Removing one takes its chapters with it
+through the relationship's cascade delete rule.
+
+Still outstanding: `library-browse-catalog` also requires removal to delete the
+series' downloaded payloads. There is no download storage yet; that is wired into
+`remove(_:)` when downloads are built.

@@ -5,7 +5,8 @@ entry points, directory responsibilities, and implementation locations. Use
 `architecture.md` for normative layer rules, contracts, invariants, and
 architectural decisions.
 
-> **Foundation.** `Domain/Model/`, `Core/`, `Data/Source/`, `UI/Theme/`, and
+> **Foundation and persistence.** `Domain/`, `Core/`, `Data/Source/`,
+> `Data/Local/Database/`, `Data/Local/Prefs/`, `Data/Repository/`, `UI/Theme/`, and
 > `UI/Navigation/` are implemented and tested. Every other directory below exists,
 > is documented, and is empty. Each directory's `codemap.md` states what it is
 > *for*; `openspec/specs/` states how it must *behave*.
