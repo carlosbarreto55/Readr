@@ -32,6 +32,17 @@ enum SeriesMapper {
         )
     }
 
+    /// Projects a persistence row into the saved-library domain value without
+    /// allowing the entity itself to cross the repository boundary.
+    static func toLibraryItem(_ entity: SeriesEntity) -> LibraryItem? {
+        guard let series = toDomain(entity) else { return nil }
+        return LibraryItem(
+            series: series,
+            dateAdded: entity.dateAdded,
+            lastReadAt: entity.lastReadAt
+        )
+    }
+
     static func makeEntity(from series: Series, dateAdded: Date = .now) -> SeriesEntity {
         SeriesEntity(
             sourceID: series.sourceID,

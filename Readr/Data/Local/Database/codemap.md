@@ -8,7 +8,7 @@ SwiftData. Read `AGENTS.md` in this directory before changing anything here.
 | `ChapterEntity.swift` | `@Model` for a chapter and the reader's progress through it. |
 | `SchemaV1.swift` | The first `VersionedSchema`, and `ReadrMigrationPlan`, the `SchemaMigrationPlan` the container is opened through. |
 | `EntityKey.swift` | Derives both persisted keys from `(sourceID, url)`. |
-| `SeriesMapper.swift` | `SeriesEntity` ↔ `Series`. Free functions, not methods. |
+| `SeriesMapper.swift` | `SeriesEntity` → `Series` / `LibraryItem`, plus `Series` → entity. Free functions, not methods. |
 | `ChapterMapper.swift` | `ChapterEntity` ↔ `Chapter`. Free functions, not methods. |
 
 `@Model` classes are persistence types and never leave this directory

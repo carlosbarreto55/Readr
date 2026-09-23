@@ -8,12 +8,13 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation, persistence, source runtime, and initial plugins.** The rules below are
+> **Status: foundation through catalog UI.** The rules below are
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
-> implemented, along with the FreeWebNovel and AsuraScans plugins. Screens,
-> downloads, and Spotlight are not.
+> implemented, along with the FreeWebNovel and AsuraScans plugins and the
+> repository-backed Library/Browse screens. Series detail, Reader, Downloads,
+> Settings, background work, and Spotlight are not.
 
 ---
 
@@ -51,7 +52,7 @@ composition root for dependency injection.
 | JSON | `Codable` |
 | Database | SwiftData |
 | Preferences | `UserDefaults` behind `SettingsStore` |
-| Images | Nuke |
+| Images | Nuke through NukeUI |
 | Background | `BGTaskScheduler`, background `URLSession` |
 | DI | `AppContainer` composition root via SwiftUI `Environment` |
 | System search | Core Spotlight |

@@ -40,6 +40,20 @@ struct MapperTests {
         #expect(restored?.id == original.id)
     }
 
+    @Test("A library item carries the entity's saved timestamps")
+    func libraryItemMapsReaderMetadata() {
+        let added = Date(timeIntervalSince1970: 1_000)
+        let read = Date(timeIntervalSince1970: 2_000)
+        let entity = SeriesMapper.makeEntity(from: series(), dateAdded: added)
+        entity.lastReadAt = read
+
+        let item = SeriesMapper.toLibraryItem(entity)
+
+        #expect(item?.series.title == "A Title")
+        #expect(item?.dateAdded == added)
+        #expect(item?.lastReadAt == read)
+    }
+
     @Test("A series with only its required fields survives a round trip")
     func sparseSeriesRoundTrip() {
         let sparse = Series(sourceID: 1, url: seriesURL, title: "T", contentType: .novel)

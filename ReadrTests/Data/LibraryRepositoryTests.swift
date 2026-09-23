@@ -9,14 +9,17 @@ struct LibraryRepositoryTests {
     private let seriesURL = URL(string: "https://example.test/series/one")!
     private let otherURL = URL(string: "https://example.test/series/two")!
 
-    private func makeRepository() throws -> SwiftDataLibraryRepository {
+    private func makeContainer() throws -> ModelContainer {
         let schema = Schema(versionedSchema: SchemaV1.self)
-        let container = try ModelContainer(
+        return try ModelContainer(
             for: schema,
             migrationPlan: ReadrMigrationPlan.self,
             configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         )
-        return SwiftDataLibraryRepository(modelContainer: container)
+    }
+
+    private func makeRepository() throws -> SwiftDataLibraryRepository {
+        SwiftDataLibraryRepository(modelContainer: try makeContainer())
     }
 
     private func series(_ url: URL, title: String = "A Title") -> Series {
@@ -46,6 +49,30 @@ struct LibraryRepositoryTests {
         #expect(
             try await repository.series(SeriesID(sourceID: 42, url: seriesURL))?.title == "Saved")
         #expect(try await repository.savedSeries().count == 1)
+    }
+
+    @Test("Saved items expose the exact stored local timestamps")
+    @MainActor
+    func savedItemsExposeMetadata() async throws {
+        let container = try makeContainer()
+        let added = Date(timeIntervalSince1970: 1_000)
+        let read = Date(timeIntervalSince1970: 2_000)
+        let entity = SeriesMapper.makeEntity(
+            from: series(seriesURL, title: "Saved"),
+            dateAdded: added
+        )
+        entity.lastReadAt = read
+        let context = ModelContext(container)
+        context.insert(entity)
+        try context.save()
+
+        let repository = SwiftDataLibraryRepository(modelContainer: container)
+        let items = try await repository.savedItems()
+
+        #expect(items.count == 1)
+        #expect(items.first?.series.title == "Saved")
+        #expect(items.first?.dateAdded == added)
+        #expect(items.first?.lastReadAt == read)
     }
 
     @Test("An unsaved series is absent rather than an error")
@@ -233,5 +260,7 @@ struct LibraryRepositoryTests {
         try await repository.save(series(third, title: "Third"))
 
         #expect(try await repository.savedSeries().map(\.title) == ["Third", "Second", "First"])
+        #expect(
+            try await repository.savedItems().map(\.series.title) == ["Third", "Second", "First"])
     }
 }

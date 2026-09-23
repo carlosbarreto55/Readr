@@ -4,6 +4,10 @@
 /// invariant 12.
 public protocol LibraryRepository: Sendable {
 
+    /// Every saved item with its reader-owned metadata, most recently added
+    /// first.
+    func savedItems() async throws -> [LibraryItem]
+
     /// Every saved series, most recently added first.
     func savedSeries() async throws -> [Series]
 

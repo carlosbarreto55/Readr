@@ -6,6 +6,7 @@ annotations, no framework imports beyond Foundation.
 | Type | Shape |
 | --- | --- |
 | `Series` | struct — identity is `(sourceID, url)`, exposed as `SeriesID` |
+| `LibraryItem` | struct — saved `Series` plus reader-owned date-added and last-read timestamps |
 | `Chapter` | struct — identity is `(sourceID, url)`, exposed as `ChapterID` |
 | `ChapterContent` | enum — exactly `.text(html:)` and `.pages(imageURLs:)` |
 | `ContentType` | enum — `.novel`, `.manhwa`, with frozen raw values |

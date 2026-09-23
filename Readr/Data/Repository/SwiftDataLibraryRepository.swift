@@ -9,10 +9,14 @@ import SwiftData
 @ModelActor
 actor SwiftDataLibraryRepository: LibraryRepository {
 
-    func savedSeries() throws -> [Series] {
+    func savedItems() throws -> [LibraryItem] {
         var descriptor = FetchDescriptor<SeriesEntity>()
         descriptor.sortBy = [SortDescriptor(\.dateAdded, order: .reverse)]
-        return try modelContext.fetch(descriptor).compactMap(SeriesMapper.toDomain)
+        return try modelContext.fetch(descriptor).compactMap(SeriesMapper.toLibraryItem)
+    }
+
+    func savedSeries() throws -> [Series] {
+        try savedItems().map(\.series)
     }
 
     func series(_ id: SeriesID) throws -> Series? {

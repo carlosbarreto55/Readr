@@ -1,20 +1,20 @@
 # Codemap: `UI/`
 
-> **Shell and theme implemented; no feature screens yet.** Every tab shows a
-> placeholder naming the feature it will hold.
+> **Library and Browse implemented.** Downloads and Settings remain explicit tab
+> placeholders; Series and Reader remain later navigation destinations.
 
 SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 
 | Directory | Responsibility |
 | --- | --- |
 | `Navigation/` | Tab shell and typed navigation paths |
-| `Library/` | Saved series |
-| `Browse/` | Source catalogs: popular, latest, search |
+| `Library/` | Offline saved-series grid, filters, sorting, and membership removal |
+| `Browse/` | Source selection and paged popular, latest, and search catalogs |
 | `Series/` | Series detail and chapter list |
 | `Reader/` | The unified reader |
 | `Downloads/` | Queue and stored chapters |
 | `Settings/` | Preferences |
-| `Components/` | Views shared by 2+ screens |
+| `Components/` | Shared adaptive series grid, card, and NukeUI cover rendering |
 | `Theme/` | Colors, spacing, typography |
 
 Every screen is four files — `<Name>Screen`, `<Name>Content`, `<Name>Model`,

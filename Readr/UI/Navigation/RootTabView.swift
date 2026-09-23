@@ -13,13 +13,27 @@ struct RootTabView: View {
         TabView(selection: $navigation.selectedTab) {
             Tab(AppTab.library.title, systemImage: AppTab.library.systemImage, value: .library) {
                 NavigationStack(path: $navigation.libraryPath) {
-                    PlaceholderDestination(tab: .library)
+                    LibraryScreen()
+                        .navigationDestination(for: LibraryRoute.self) { route in
+                            switch route {
+                            case .series(let id):
+                                PendingSeriesDestination(id: id)
+                            }
+                        }
                 }
             }
 
             Tab(AppTab.browse.title, systemImage: AppTab.browse.systemImage, value: .browse) {
                 NavigationStack(path: $navigation.browsePath) {
-                    PlaceholderDestination(tab: .browse)
+                    BrowseScreen()
+                        .navigationDestination(for: BrowseRoute.self) { route in
+                            switch route {
+                            case .catalog(let sourceID):
+                                BrowseScreen(sourceID: sourceID)
+                            case .series(let id):
+                                PendingSeriesDestination(id: id)
+                            }
+                        }
                 }
             }
 
@@ -41,6 +55,24 @@ struct RootTabView: View {
     }
 }
 
+/// M5's typed landing point for a route whose full screen arrives in M6.
+private struct PendingSeriesDestination: View {
+    let id: SeriesID
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("Series Details", systemImage: "book.pages")
+        } description: {
+            Text("This catalog route is ready. Series details and chapters arrive in M6.")
+        }
+        .navigationTitle("Series")
+        .accessibilityIdentifier(id.url.absoluteString)
+    }
+}
+
 #Preview {
-    RootTabView()
+    if let container = try? AppContainer.inMemory() {
+        RootTabView()
+            .environment(\.appContainer, container)
+    }
 }

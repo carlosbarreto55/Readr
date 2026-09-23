@@ -11,19 +11,16 @@ app doesn't know or care which site it's talking to.
 
 ## Status
 
-**Foundation, persistence, source runtime, and initial plugins.** The architecture, the
-capability specs, and the agent infrastructure are written, and what they describe
-is being built beneath them: the framework-free domain vocabulary, the `Source`
-plugin contract, stable source identity, the composition root, the theme, the
-four-tab app shell, the versioned SwiftData store with its library repository and
-settings store, and the runtime a plugin runs on — bounded and timed-out HTTP,
-off-main-actor HTML parsing, an expiring metadata cache, and catalog paging that
-cannot duplicate or double-request. FreeWebNovel and AsuraScans exercise that
-runtime with fixture-tested novel and manhwa parsing. All under test. A saved
-series survives relaunch.
+**Library and Browse are now functional.** The framework-free domain, stable
+source identity, composition root, versioned SwiftData library, preferences,
+bounded source runtime, cache, and pager are implemented and tested.
+FreeWebNovel and AsuraScans provide fixture-tested novel and manhwa catalogs.
+Their results appear through a shared adaptive grid; readers can browse popular
+and latest releases, search, page, add/remove library membership, and filter or
+sort the offline library with selections restored after relaunch.
 
-What remains unbuilt is the visible product: there is no real screen, reader,
-download flow, or Spotlight integration yet.
+Series detail, the unified reader, downloads, Settings, background refresh, and
+Spotlight integration remain to be built.
 
 ---
 
@@ -69,7 +66,7 @@ is architectural rather than cosmetic.
 | JSON | `Codable` |
 | Database | SwiftData |
 | Preferences | `UserDefaults` behind `SettingsStore` |
-| Images | Nuke |
+| Images | Nuke through NukeUI |
 | Background | `BGTaskScheduler`, background `URLSession` |
 | DI | `AppContainer` composition root |
 | System search | Core Spotlight |

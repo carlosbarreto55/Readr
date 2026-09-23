@@ -11,15 +11,17 @@ Use this file for repo-specific rules and routing only.
 - Read `codemap.md` for repository structure, entry points, and directory maps.
 - Read a folder's `codemap.md` for local implementation details inside that area.
 
-> **Foundation, persistence, the source runtime, and the first plugins are in
-> place; the screens are not.** The domain vocabulary, the `Source` contract, `computeSourceID`, the
+> **Foundation through the first catalog screens is in place.** The domain
+> vocabulary, the `Source` contract, `computeSourceID`, the
 > composition root, the theme, the four-tab app shell, schema v1 with its
 > migration plan, the library repository, the settings store, and the source
 > runtime — `HTTPClient`, `HTMLSource`, the metadata cache, the catalog pager, and
 > the catalog repository — all exist and are tested. `liveSources()` registers
-> FreeWebNovel and AsuraScans. **No real screen exists yet**, and nothing is
-> downloaded or indexed. The specs in `openspec/specs/` define what goes in the
-> directories that are still empty.
+> FreeWebNovel and AsuraScans. Library and Browse are real repository-backed
+> screens with a shared adaptive grid, persisted local filters/sorting, search,
+> and paging. Series detail, Reader, Downloads, Settings, background work, and
+> Spotlight remain; nothing is downloaded or indexed yet. The specs in
+> `openspec/specs/` define what goes in the directories that are still empty.
 
 ## Non-negotiables
 

@@ -10,7 +10,7 @@ a simulator.
 
 | File | Responsibility |
 | --- | --- |
-| `LibraryRepository.swift` | Saved series and their chapter state. Domain values in and out. |
+| `LibraryRepository.swift` | Saved series, reader-owned library timestamps, and chapter state. Domain values in and out. |
 | `SettingsStore.swift` | The reader's settings, plus `SettingKey` and `RawSettingKey`. |
 | `CatalogRepository.swift` | Remote catalog data over sources. Every method takes `refresh`, so a caller states at the call site whether it wants the cache. |
 | `Model/` | Immutable `Sendable` models — see its own codemap. |

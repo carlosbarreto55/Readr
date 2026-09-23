@@ -5,7 +5,7 @@ the filesystem, and Spotlight — and they are the only layer permitted to.
 
 | File | Responsibility |
 | --- | --- |
-| `SwiftDataLibraryRepository.swift` | `LibraryRepository` over SwiftData: saved series and the chapter state belonging to them. |
+| `SwiftDataLibraryRepository.swift` | `LibraryRepository` over SwiftData: saved items with reader-owned timestamps and their chapter state. |
 | `DefaultCatalogRepository.swift` | `CatalogRepository` over `SourceRegistry`, with the metadata caches in front of it. |
 
 A `@ModelActor`, so every access runs on its own `ModelContext` off the main actor.

@@ -5,16 +5,18 @@ entry points, directory responsibilities, and implementation locations. Use
 `architecture.md` for normative layer rules, contracts, invariants, and
 architectural decisions.
 
-> **Foundation, persistence, source runtime, and initial plugins.** `Domain/`, `Core/`,
+> **Foundation through catalog UI.** `Domain/`, `Core/`,
 > `Data/Source/`, `Data/Local/Database/`, `Data/Local/Prefs/`, `Data/Repository/`,
-> `Sources/`, `UI/Theme/`, and `UI/Navigation/` are implemented and tested. Every other
-> directory below exists, is documented, and is empty. Each directory's
+> `Sources/`, `UI/Theme/`, `UI/Navigation/`, `UI/Components/`, `UI/Library/`,
+> and `UI/Browse/` are implemented and tested. Remaining feature directories
+> below exist, are documented, and are empty. Each directory's
 > `codemap.md` states what it is *for*; `openspec/specs/` states how it must
 > *behave*.
 >
 > The runtime a site plugin needs now exists — fetching, parsing, caching, paging,
 > and the detail merge — and `liveSources()` registers FreeWebNovel and
-> AsuraScans. No feature screen consumes them until M5.
+> AsuraScans. Library and Browse consume only repository/domain contracts; the
+> next unimplemented destination is series detail in M6.
 
 ## Project Responsibility
 
