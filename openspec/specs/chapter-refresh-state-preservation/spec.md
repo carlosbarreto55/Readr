@@ -4,9 +4,7 @@
 
 Defines how a chapter list refresh merges remote data with locally held state, so
 refreshing never discards read progress or downloaded content.
-
 ## Requirements
-
 ### Requirement: Refresh SHALL preserve local chapter state
 
 Merging a refreshed chapter list MUST preserve read state, reading position, and
@@ -53,3 +51,26 @@ If a refresh throws, no partial merge MUST be committed.
 
 - **WHEN** a chapter list refresh throws partway through
 - **THEN** stored chapter state SHALL be exactly as it was before the refresh
+
+### Requirement: Stored chapters SHALL be presented in reading order
+
+Each stored chapter MUST record the position its source most recently listed it
+at, and the stored chapters of a series MUST be presented in one reading order —
+first chapter first — regardless of whether the source lists newest-first or
+oldest-first.
+
+#### Scenario: A source lists newest chapters first
+
+- **WHEN** a numbered chapter list is stored in descending order
+- **THEN** the chapters SHALL be presented in ascending chapter order
+
+#### Scenario: A source lists chapters without numbers
+
+- **WHEN** the stored chapters carry no chapter numbers
+- **THEN** they SHALL be presented in the order the source listed them
+
+#### Scenario: A chapter is no longer listed upstream
+
+- **WHEN** a stored chapter was absent from the latest refresh
+- **THEN** it SHALL keep its last known position in the reading order
+

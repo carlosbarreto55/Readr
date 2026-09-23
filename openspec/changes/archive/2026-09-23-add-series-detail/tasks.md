@@ -55,4 +55,4 @@
 - [x] 6.1 Run XcodeGen, build, tests, bundle check, SwiftLint, swift-format, and
       `openspec validate --all`
 - [x] 6.2 Review the diff against the twelve invariants and the four-file rule
-- [ ] 6.3 Archive `add-series-detail`
+- [x] 6.3 Archive `add-series-detail`
