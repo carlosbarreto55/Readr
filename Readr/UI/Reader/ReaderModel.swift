@@ -207,7 +207,11 @@ final class ReaderModel {
     private func positionChanged(_ index: Int) {
         guard let length = state.document?.length, length > 0 else { return }
         let lastIndex = max(length - 1, 1)
-        state.progress = min(max(Double(index) / Double(lastIndex), 0), 1)
+        let progress = min(max(Double(index) / Double(lastIndex), 0), 1)
+        // An unchanged position changes nothing: writing it anyway would redraw
+        // the whole Reader on every visibility callback while scrolling.
+        guard progress != state.progress else { return }
+        state.progress = progress
         persistCurrent(force: false)
     }
 

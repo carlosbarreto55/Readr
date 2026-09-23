@@ -184,6 +184,28 @@ struct ReaderModelTests {
         #expect(abs(model.state.progress - 0.12) < 0.0001)
     }
 
+    @Test("Reporting the same position again changes nothing and writes nothing")
+    func repeatedPositionIsIgnored() async {
+        let repository = FakeChapterRepository(chapters: [chapter(1)])
+        await repository.script([pages(101)], for: chapter(1).id)
+        let model = make(route(1, .manhwa), repository: repository)
+        await model.load()
+
+        model.onAction(.positionChanged(index: 20))
+        model.onAction(.positionChanged(index: 20))
+        model.onAction(.positionChanged(index: 20))
+        await model.flushProgress()
+
+        #expect(await repository.progressPositions() == [0, 0.2])
+        #expect(model.state.progress == 0.2)
+    }
+
+    @Test("The reading position among visible pages is the earliest")
+    func firstVisiblePage() {
+        #expect(PageRenderer.firstVisible([4, 2, 3]) == 2)
+        #expect(PageRenderer.firstVisible([]) == nil)
+    }
+
     @Test("Reaching the end marks the chapter read once")
     func reachingEndMarksRead() async {
         let repository = FakeChapterRepository(chapters: [chapter(1)])

@@ -8,51 +8,65 @@ import SwiftUI
 /// Nuke is confined here and to `CoverImage` (`architecture.md` §8). Its bounded
 /// memory cache and a three-page lookahead are what keep a long webtoon chapter
 /// from stuttering or being terminated for memory.
+///
+/// Webtoon pages are strips — a real one is 900×16000 px, several screens tall —
+/// which shapes three choices here:
+/// - The scroll position is **observed, never bound.** A bound position is
+///   re-pinned by SwiftUI whenever content size changes, and every strip that
+///   finishes loading changes size by thousands of points, so a bound reader is
+///   yanked back to the page it was bound to. The starting page is restored once.
+/// - Each page's **real aspect ratio is remembered** once its image loads, so a
+///   page keeps its height when it is re-created and the chapter does not reflow
+///   under the reader. An unknown page is one screen tall.
+/// - Pages are **decoded at display width**, with the prefetcher asking for the
+///   same requests so prefetched pages are cache hits.
 struct PageRenderer: View {
     let urls: [URL]
     let preferences: ReaderPreferences
+    let initialIndex: Int
     let onPositionChanged: (Int) -> Void
     let onReachedEnd: () -> Void
     let onTap: () -> Void
 
-    @State private var position: Int?
-    @State private var prefetcher = ImagePrefetcher()
+    @Environment(\.displayScale) private var displayScale
+    @State private var containerWidth: CGFloat = 0
+    @State private var aspectRatios: [Int: CGFloat] = [:]
+    @State private var reportedIndex: Int?
+    @State private var hasRestored = false
+    @State private var prefetcher: ImagePrefetcher?
 
     private static let lookahead = 3
 
-    init(
-        urls: [URL],
-        preferences: ReaderPreferences,
-        initialIndex: Int,
-        onPositionChanged: @escaping (Int) -> Void,
-        onReachedEnd: @escaping () -> Void,
-        onTap: @escaping () -> Void
-    ) {
-        self.urls = urls
-        self.preferences = preferences
-        self.onPositionChanged = onPositionChanged
-        self.onReachedEnd = onReachedEnd
-        self.onTap = onTap
-        _position = State(initialValue: initialIndex)
-    }
-
     var body: some View {
-        Group {
-            switch preferences.pageLayout {
-            case .vertical: vertical
-            case .paged: paged
+        ScrollViewReader { proxy in
+            Group {
+                switch preferences.pageLayout {
+                case .vertical: vertical
+                case .paged: paged
+                }
+            }
+            .onScrollTargetVisibilityChange(idType: Int.self, threshold: 0.2) { visible in
+                visibleChanged(visible)
+            }
+            .onAppear {
+                guard !hasRestored else { return }
+                hasRestored = true
+                if initialIndex > 0 {
+                    proxy.scrollTo(initialIndex, anchor: .top)
+                }
             }
         }
-        .scrollPosition(id: $position)
-        .onChange(of: position, initial: true) { _, index in
-            guard let index else { return }
-            onPositionChanged(index)
-            prefetch(after: index)
-            if preferences.pageLayout == .paged, index == urls.count - 1 {
-                onReachedEnd()
+        .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+        } action: { width in
+            containerWidth = width
+        }
+        .onAppear {
+            if prefetcher == nil {
+                prefetcher = ImagePrefetcher()
             }
         }
-        .onDisappear { prefetcher.stopPrefetching() }
+        .onDisappear { prefetcher?.stopPrefetching() }
         .contentShape(.rect)
         .onTapGesture(perform: onTap)
         .background(ReaderColors.background(preferences.theme))
@@ -62,9 +76,12 @@ struct PageRenderer: View {
         ScrollView(.vertical) {
             LazyVStack(spacing: 0) {
                 ForEach(urls.indices, id: \.self) { index in
-                    PageImage(url: urls[index], number: index + 1, theme: preferences.theme)
+                    page(index)
+                        .frame(maxWidth: .infinity)
+                        .modifier(PageHeight(aspectRatio: aspectRatios[index]))
                         .id(index)
                 }
+                // Reaching this is reaching the end of the chapter.
                 Color.clear
                     .frame(height: 1)
                     .onAppear(perform: onReachedEnd)
@@ -77,7 +94,7 @@ struct PageRenderer: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
                 ForEach(urls.indices, id: \.self) { index in
-                    PageImage(url: urls[index], number: index + 1, theme: preferences.theme)
+                    page(index)
                         .containerRelativeFrame([.horizontal, .vertical])
                         .id(index)
                 }
@@ -86,26 +103,81 @@ struct PageRenderer: View {
         }
         .scrollTargetBehavior(.paging)
         .scrollIndicators(.hidden)
-        .sensoryFeedback(.selection, trigger: position)
+        .sensoryFeedback(.selection, trigger: reportedIndex)
+    }
+
+    private func page(_ index: Int) -> some View {
+        PageImage(
+            request: request(for: urls[index]),
+            number: index + 1,
+            theme: preferences.theme,
+            onLoaded: { size in
+                guard size.width > 0, size.height > 0, aspectRatios[index] == nil else {
+                    return
+                }
+                aspectRatios[index] = size.width / size.height
+            }
+        )
+    }
+
+    /// Resized to the pixels actually drawn, never upscaled. `nil` until the
+    /// width is known, so nothing is decoded at the wrong size first.
+    private func request(for url: URL) -> ImageRequest? {
+        guard containerWidth > 0 else { return nil }
+        return ImageRequest(
+            url: url,
+            processors: [
+                ImageProcessors.Resize(
+                    width: containerWidth * displayScale, unit: .pixels, upscale: false)
+            ])
+    }
+
+    private func visibleChanged(_ visible: [Int]) {
+        guard let first = Self.firstVisible(visible), first != reportedIndex else { return }
+        reportedIndex = first
+        onPositionChanged(first)
+        prefetch(after: first)
+        if preferences.pageLayout == .paged, visible.contains(urls.count - 1) {
+            onReachedEnd()
+        }
     }
 
     private func prefetch(after index: Int) {
-        let next = urls.dropFirst(index + 1).prefix(Self.lookahead)
-        prefetcher.startPrefetching(with: Array(next))
+        let upcoming = urls.dropFirst(index + 1).prefix(Self.lookahead)
+        prefetcher?.startPrefetching(with: upcoming.compactMap(request(for:)))
+    }
+
+    /// The reading position among visible pages: the earliest one.
+    static func firstVisible(_ visible: [Int]) -> Int? {
+        visible.min()
     }
 }
 
-/// One page: the image at its natural aspect ratio, a stable placeholder while
-/// it loads, and a retry when it fails.
+/// A page's height: its image's real aspect ratio once known, else one screen.
+private struct PageHeight: ViewModifier {
+    let aspectRatio: CGFloat?
+
+    func body(content: Content) -> some View {
+        if let aspectRatio {
+            content.aspectRatio(aspectRatio, contentMode: .fit)
+        } else {
+            content.containerRelativeFrame(.vertical)
+        }
+    }
+}
+
+/// One page: the image, a labelled placeholder while it loads, and a retry when
+/// it fails. Reports the loaded image's size so its height survives re-creation.
 private struct PageImage: View {
-    let url: URL
+    let request: ImageRequest?
     let number: Int
     let theme: ReaderTheme
+    let onLoaded: (CGSize) -> Void
 
     @State private var attempt = 0
 
     var body: some View {
-        LazyImage(url: url) { state in
+        LazyImage(request: request) { state in
             if let image = state.image {
                 image
                     .resizable()
@@ -116,17 +188,25 @@ private struct PageImage: View {
                 placeholder
             }
         }
+        .onCompletion { result in
+            if case .success(let response) = result {
+                onLoaded(response.image.size)
+            }
+        }
         .id(attempt)
-        .frame(maxWidth: .infinity)
         .accessibilityLabel("Page \(number)")
     }
 
     private var placeholder: some View {
-        ZStack {
-            ReaderColors.background(theme)
+        VStack(spacing: Spacing.small) {
             ProgressView()
+                .tint(ReaderColors.text(theme))
+            Text("Loading page \(number)…")
+                .font(Typography.caption)
+                .foregroundStyle(ReaderColors.secondaryText(theme))
         }
-        .aspectRatio(2 / 3, contentMode: .fit)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ReaderColors.background(theme))
     }
 
     private var failed: some View {
@@ -140,8 +220,7 @@ private struct PageImage: View {
             Button("Try Again") { attempt += 1 }
                 .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(2 / 3, contentMode: .fit)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
