@@ -5,9 +5,7 @@
 Defines the app's four top-level destinations, how each keeps its own navigation
 path, what a route must carry, and how a destination whose feature is not built
 yet presents itself.
-
 ## Requirements
-
 ### Requirement: The app SHALL present four top-level destinations
 
 Launching Readr MUST present Library, Browse, Downloads, and Settings as
@@ -94,4 +92,20 @@ never resolves, or an error.
 - **WHEN** a destination's feature is implemented
 - **THEN** its placeholder SHALL be replaced by the feature
 - **AND** the destination's position and label SHALL be unchanged
+
+### Requirement: A destination SHALL stay navigable after the reader returns to it
+
+Leaving a destination — by pushing another route or switching tabs — and
+returning to it MUST NOT stop its items from navigating.
+
+#### Scenario: The reader opens a route, goes back, and opens another
+
+- **WHEN** the reader opens a route from a destination, returns to that
+  destination, and opens a route from it again
+- **THEN** the second route SHALL be pushed like the first
+
+#### Scenario: The reader switches tabs and returns
+
+- **WHEN** the reader switches to another tab and back
+- **THEN** the destination's items SHALL still navigate
 

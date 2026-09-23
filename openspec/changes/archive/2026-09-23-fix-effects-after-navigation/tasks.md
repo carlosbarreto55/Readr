@@ -14,5 +14,5 @@
 
 - [x] 2.1 Run XcodeGen, build, tests, SwiftLint, swift-format, and
       `openspec validate --all`
-- [ ] 2.2 Install on the device and confirm navigation after returning
-- [ ] 2.3 Archive `fix-effects-after-navigation`
+- [x] 2.2 Install on the device and confirm navigation after returning
+- [x] 2.3 Archive `fix-effects-after-navigation`
