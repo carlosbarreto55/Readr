@@ -42,6 +42,14 @@ public protocol CatalogRepository: Sendable {
     /// A series' chapters as the source lists them, in source order.
     func chapters(for series: Series, refresh: Bool) async throws -> [Chapter]
 
+    /// The series as the most recent catalog page listing it described it, or
+    /// `nil` if no page this session has listed it.
+    ///
+    /// Lets a destination that received only an identity show a title and cover
+    /// before its details arrive, without the route carrying a `Series` that could
+    /// go stale.
+    func knownSeries(_ id: SeriesID) async -> Series?
+
     /// Whether a source supports a filter at all, so a surface can offer only
     /// what will be honored.
     func supports(_ filter: Filter, sourceID: Int64) async -> Bool

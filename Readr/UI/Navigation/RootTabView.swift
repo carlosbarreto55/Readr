@@ -7,7 +7,10 @@ import SwiftUI
 /// from uses — see `architecture.md` §9. Series and Reader are destinations, not
 /// tabs.
 struct RootTabView: View {
+    @Environment(\.appContainer) private var container
+    @Environment(\.scenePhase) private var scenePhase
     @State private var navigation = NavigationState()
+    @State private var activationRefresh = RefreshThrottle(minimumInterval: 15 * 60)
 
     var body: some View {
         TabView(selection: $navigation.selectedTab) {
@@ -17,7 +20,7 @@ struct RootTabView: View {
                         .navigationDestination(for: LibraryRoute.self) { route in
                             switch route {
                             case .series(let id):
-                                PendingSeriesDestination(id: id)
+                                SeriesScreen(id: id)
                             }
                         }
                 }
@@ -31,7 +34,7 @@ struct RootTabView: View {
                             case .catalog(let sourceID):
                                 BrowseScreen(sourceID: sourceID)
                             case .series(let id):
-                                PendingSeriesDestination(id: id)
+                                SeriesScreen(id: id)
                             }
                         }
                 }
@@ -42,6 +45,12 @@ struct RootTabView: View {
             ) {
                 NavigationStack(path: $navigation.downloadsPath) {
                     PlaceholderDestination(tab: .downloads)
+                        .navigationDestination(for: DownloadsRoute.self) { route in
+                            switch route {
+                            case .series(let id):
+                                SeriesScreen(id: id)
+                            }
+                        }
                 }
             }
 
@@ -52,21 +61,23 @@ struct RootTabView: View {
             }
         }
         .environment(navigation)
-    }
-}
-
-/// M5's typed landing point for a route whose full screen arrives in M6.
-private struct PendingSeriesDestination: View {
-    let id: SeriesID
-
-    var body: some View {
-        ContentUnavailableView {
-            Label("Series Details", systemImage: "book.pages")
-        } description: {
-            Text("This catalog route is ready. Series details and chapters arrive in M6.")
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            guard phase == .active else { return }
+            refreshLibraryIfDue()
         }
-        .navigationTitle("Series")
-        .accessibilityIdentifier(id.url.absoluteString)
+    }
+
+    /// The foreground refresh `architecture.md` §8 names as the actual
+    /// guarantee: background refresh may never run.
+    private func refreshLibraryIfDue() {
+        guard let container, activationRefresh.claim() else { return }
+        let series = container.series
+        Task {
+            let report = await series.refreshLibrary()
+            if report.refreshed > 0 {
+                navigation.libraryDidChange()
+            }
+        }
     }
 }
 

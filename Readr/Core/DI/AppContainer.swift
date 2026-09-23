@@ -26,6 +26,8 @@ public final class AppContainer: Sendable {
     public let library: any LibraryRepository
     public let settings: any SettingsStore
     public let catalog: any CatalogRepository
+    /// Series detail: the catalog's view of a series folded into the library's.
+    public let series: any SeriesRepository
 
     /// The one outbound request path. Held here so every source shares one
     /// concurrency budget per host; a source that built its own would get a
@@ -46,6 +48,7 @@ public final class AppContainer: Sendable {
         self.library = SwiftDataLibraryRepository(modelContainer: modelContainer)
         self.http = http ?? HTTPClient(session: urlSession)
         self.catalog = DefaultCatalogRepository(registry: sources)
+        self.series = DefaultSeriesRepository(library: library, catalog: catalog)
     }
 
     /// The container the app runs with.
@@ -98,7 +101,7 @@ public final class AppContainer: Sendable {
     }
 
     private static func makeStore(inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV1.self)
+        let schema = Schema(versionedSchema: CurrentSchema.self)
         return try ModelContainer(
             for: schema,
             migrationPlan: ReadrMigrationPlan.self,

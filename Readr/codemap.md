@@ -1,9 +1,9 @@
 # Codemap: `Readr/`
 
-> **Foundation through catalog UI.** `Core/`, `Domain/`,
+> **Foundation through series detail.** `Core/`, `Domain/`,
 > `Data/Source/`, `Data/Repository/`, `Data/Local/Database/`, `Data/Local/Prefs/`,
-> `Sources/`, `UI/Theme/`, `UI/Navigation/`, `UI/Components/`, `UI/Library/`, and
-> `UI/Browse/` hold code. `Data/Local/Filesystem/`, `Data/Local/Search/`,
+> `Sources/`, `UI/Theme/`, `UI/Navigation/`, `UI/Components/`, `UI/Library/`,
+> `UI/Browse/`, and `UI/Series/` hold code. `Data/Local/Filesystem/`, `Data/Local/Search/`,
 > `Background/`, and the later feature directories under `UI/` are still empty.
 
 Application source root. Every subdirectory maps to a layer in

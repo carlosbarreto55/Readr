@@ -1,6 +1,6 @@
 # Codemap: `Domain/`
 
-> **Models and the first three contracts implemented.** Each remaining contract
+> **Models and the first four contracts implemented.** Each remaining contract
 > arrives with the change that implements it — a protocol with no caller is a
 > guess about a milestone that has not been designed.
 
@@ -12,11 +12,17 @@ a simulator.
 | --- | --- |
 | `LibraryRepository.swift` | Saved series, reader-owned library timestamps, and chapter state. Domain values in and out. |
 | `SettingsStore.swift` | The reader's settings, plus `SettingKey` and `RawSettingKey`. |
-| `CatalogRepository.swift` | Remote catalog data over sources. Every method takes `refresh`, so a caller states at the call site whether it wants the cache. |
+| `CatalogRepository.swift` | Remote catalog data over sources. Every method takes `refresh`, so a caller states at the call site whether it wants the cache. `knownSeries(_:)` returns the last listing of a series. |
+| `SeriesRepository.swift` | A series' detail: stored snapshot, pre-detail seed, source refresh merged into the library, and the library-wide refresh that repairs blank titles. |
 | `Model/` | Immutable `Sendable` models — see its own codemap. |
 
-Planned, each arriving with the change that implements it: a chapter repository
-for refresh merging, a download repository, and a search repository.
+`LibraryRepository.mergeChapterList(_:for:)` is the refresh merge
+`chapter-refresh-state-preservation` defines: state follows identity, absent
+chapters are marked rather than deleted, an empty list throws, and nothing
+partial is committed.
+
+Planned, each arriving with the change that implements it: a reader repository,
+a download repository, and a search index.
 
 `SettingKey` is named that way rather than `PreferenceKey` because SwiftUI already
 defines a `PreferenceKey` protocol, and a screen should never have to

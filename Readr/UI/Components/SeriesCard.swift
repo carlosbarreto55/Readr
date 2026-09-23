@@ -43,7 +43,9 @@ struct SeriesCard: View {
         VStack(alignment: .leading, spacing: Spacing.small) {
             CoverImage(url: item.series.coverURL)
 
-            Text(item.series.title)
+            // `displayTitle`, never `title`: a series whose title failed to
+            // parse still needs a label to be found, tapped, and removed.
+            Text(item.series.displayTitle)
                 .font(Typography.cardTitle)
                 .foregroundStyle(Palette.label)
                 .lineLimit(3)

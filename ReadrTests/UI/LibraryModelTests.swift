@@ -81,7 +81,10 @@ private actor FakeLibraryRepository: LibraryRepository {
     }
 
     func chapters(for id: SeriesID) -> [Chapter] { [] }
+    func libraryChapters(for id: SeriesID) -> [LibraryChapter] { [] }
     func storeChapters(_ chapters: [Chapter], for id: SeriesID) {}
+    func mergeChapterList(_ chapters: [Chapter], for id: SeriesID) {}
+    func setRead(_ chapterIDs: [ChapterID], isRead: Bool, in series: SeriesID) {}
 }
 
 private struct FakeCatalogRepository: CatalogRepository {
@@ -115,6 +118,7 @@ private struct FakeCatalogRepository: CatalogRepository {
         throw LibraryTestError.unexpectedCatalogCall
     }
 
+    func knownSeries(_ id: SeriesID) async -> Series? { nil }
     func supports(_ filter: Filter, sourceID: Int64) async -> Bool { false }
     func clearCaches() async {}
 }
@@ -323,12 +327,14 @@ struct LibraryModelTests {
     private func makeModel(
         repository: FakeLibraryRepository,
         sources: [SourceInfo] = [],
-        settings: InMemorySettingsStore = InMemorySettingsStore()
+        settings: InMemorySettingsStore = InMemorySettingsStore(),
+        refresher: any SeriesRepository = RecordingSeriesRepository()
     ) -> LibraryModel {
         LibraryModel(
             library: repository,
             catalog: FakeCatalogRepository(availableSources: sources),
-            settings: settings
+            settings: settings,
+            refresher: refresher
         )
     }
 

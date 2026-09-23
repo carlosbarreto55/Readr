@@ -7,6 +7,9 @@ annotations, no framework imports beyond Foundation.
 | --- | --- |
 | `Series` | struct — identity is `(sourceID, url)`, exposed as `SeriesID` |
 | `LibraryItem` | struct — saved `Series` plus reader-owned date-added and last-read timestamps |
+| `LibraryChapter` | struct — stored `Chapter` plus read state, position, source position, and whether the source still lists it |
+| `ChapterReadingOrder` | enum namespace — first-chapter-first ordering and the continue-reading target |
+| `Series+DisplayTitle` | `displayTitle` — the title, or a URL-derived placeholder when it is blank |
 | `Chapter` | struct — identity is `(sourceID, url)`, exposed as `ChapterID` |
 | `ChapterContent` | enum — exactly `.text(html:)` and `.pages(imageURLs:)` |
 | `ContentType` | enum — `.novel`, `.manhwa`, with frozen raw values |
@@ -19,7 +22,6 @@ Planned, each arriving with the change that needs it:
 
 | Type | Shape |
 | --- | --- |
-| `ChapterWithState` | struct — chapter plus read/download state |
 | `DownloadItem` / `DownloadState` | queue entry and its lifecycle |
 | `AppSettings` / `AppTheme` | user preferences |
 | `ManhwaLayout` / `ManhwaZoom` | reader display preferences |

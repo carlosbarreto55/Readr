@@ -3,8 +3,8 @@
 | File | Responsibility |
 | --- | --- |
 | `Routes.swift` | `AppTab`, one route enum per tab, and `ReaderRoute`. |
-| `NavigationState.swift` | Selected tab and one path per tab. |
-| `RootTabView.swift` | Root `TabView`: real Library/Browse roots and typed destinations; Downloads/Settings placeholders; one `NavigationStack` per tab. |
+| `NavigationState.swift` | Selected tab, one path per tab, and a library revision bumped when a refresh outside Library changed stored state. |
+| `RootTabView.swift` | Root `TabView`: real Library/Browse roots, series destinations on every tab, Downloads/Settings placeholders, one `NavigationStack` per tab, and the throttled library refresh on app activation. |
 | `PlaceholderDestination.swift` | Stands in for the Downloads and Settings features that have not been built yet. |
 
 Each tab has its own route type rather than sharing one app-wide enum; a shared
@@ -16,6 +16,9 @@ Series and Reader are destinations, not tabs. `ReaderRoute` exists and is tested
 but nothing presents it yet — the Reader is presented as a full-screen cover, so
 it escapes the tab bar entirely, when it is built.
 
-Library and Browse emit navigation as `Effect`s and their screens turn those into
-typed path mutations. The temporary series-route body is replaced by M6's detail
-screen without changing the route value.
+Library, Browse, and Series emit navigation as `Effect`s and their screens turn
+those into typed path mutations or presentations.
+
+On `scenePhase == .active`, at most once per 15 minutes (`RefreshThrottle`), the
+shell runs the library refresh — the foreground guarantee `architecture.md` §8
+relies on.

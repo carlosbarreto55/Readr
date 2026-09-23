@@ -3,6 +3,9 @@ import SwiftUI
 struct LibraryContent: View {
     let state: LibraryState
     let onAction: (LibraryAction) -> Void
+    /// Pull-to-refresh. Async so the system spinner stays up until the library
+    /// refresh has actually finished.
+    var onRefresh: @MainActor () async -> Void = {}
 
     var body: some View {
         Group {
@@ -43,6 +46,7 @@ struct LibraryContent: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .refreshable { await onRefresh() }
         .background(Palette.background)
         .navigationTitle("Library")
         .toolbar { filterToolbar }

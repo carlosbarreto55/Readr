@@ -6,6 +6,7 @@
 | `ComputeSourceID.swift` | `computeSourceID(name:lang:type:)` — the only way a `sourceID` is produced. |
 | `SourceMetadataCache.swift` | Bounded, expiring, LRU in-memory cache of *parsed* source responses. An `actor`; time is injected so expiry is tested by advancing a clock rather than by sleeping. |
 | `SourceCacheKey.swift` | The one place a request becomes a cache key. Length-prefixes every variable part, so two different filter sets cannot serialize identically. |
+| `RefreshThrottle.swift` | Decides whether an opportunistic refresh is due; the shell's activation refresh uses it. |
 | `CatalogPager.swift` | The paging state machine: append in order, discard an entry already loaded, one request in flight, and a retry that re-requests the same index. Driven by a closure, so it names no repository and no framework. |
 
 Planned:

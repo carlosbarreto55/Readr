@@ -1,57 +1,73 @@
 import Foundation
 import SwiftData
 
-/// A chapter and the reader's progress through it, as stored.
-///
-/// A persistence type, never a domain type (invariant 12).
-///
-/// Read state lives here rather than in its own entity because progress has no
-/// meaning without its chapter: the cascade from `SeriesEntity` collects it, and
-/// a refresh merge reads and writes one row.
-@Model
-final class ChapterEntity {
-    /// `"<sourceID>|<url>"`, derived by `EntityKey`. State follows this key, not
-    /// list position, so a source that renumbers or reorders its chapters cannot
-    /// move a reader's progress onto a different one.
-    @Attribute(.unique) var key: String
+/// The current version of the stored chapter model.
+typealias ChapterEntity = CurrentSchema.ChapterEntity
 
-    var sourceID: Int64
-    var seriesURL: String
-    var url: String
-    var name: String
-    var number: Double?
-    var dateUploaded: Date?
-    var scanlator: String?
+extension SchemaV2 {
 
-    var isRead: Bool
-    /// How far through the chapter the reader got, as a fraction from 0 to 1.
-    var readingPosition: Double
-    var lastReadAt: Date?
+    /// A chapter and the reader's progress through it, as stored.
+    ///
+    /// A persistence type, never a domain type (invariant 12).
+    ///
+    /// Read state lives here rather than in its own entity because progress has no
+    /// meaning without its chapter: the cascade from `SeriesEntity` collects it, and
+    /// a refresh merge reads and writes one row.
+    @Model
+    final class ChapterEntity {
+        /// `"<sourceID>|<url>"`, derived by `EntityKey`. State follows this key, not
+        /// list position, so a source that renumbers or reorders its chapters cannot
+        /// move a reader's progress onto a different one.
+        @Attribute(.unique) var key: String
 
-    var series: SeriesEntity?
+        var sourceID: Int64
+        var seriesURL: String
+        var url: String
+        var name: String
+        var number: Double?
+        var dateUploaded: Date?
+        var scanlator: String?
 
-    init(
-        sourceID: Int64,
-        seriesURL: String,
-        url: String,
-        name: String,
-        number: Double? = nil,
-        dateUploaded: Date? = nil,
-        scanlator: String? = nil,
-        isRead: Bool = false,
-        readingPosition: Double = 0,
-        lastReadAt: Date? = nil
-    ) {
-        self.key = EntityKey.identity(sourceID: sourceID, urlString: url)
-        self.sourceID = sourceID
-        self.seriesURL = seriesURL
-        self.url = url
-        self.name = name
-        self.number = number
-        self.dateUploaded = dateUploaded
-        self.scanlator = scanlator
-        self.isRead = isRead
-        self.readingPosition = readingPosition
-        self.lastReadAt = lastReadAt
+        var isRead: Bool
+        /// How far through the chapter the reader got, as a fraction from 0 to 1.
+        var readingPosition: Double
+        var lastReadAt: Date?
+
+        /// The position the source most recently listed this chapter at. Added in v2.
+        var sourceIndex: Int = 0
+        /// `false` once a refresh no longer finds this chapter at its source. The row
+        /// and anything stored for it are kept. Added in v2.
+        var isListedUpstream: Bool = true
+
+        var series: SeriesEntity?
+
+        init(
+            sourceID: Int64,
+            seriesURL: String,
+            url: String,
+            name: String,
+            number: Double? = nil,
+            dateUploaded: Date? = nil,
+            scanlator: String? = nil,
+            isRead: Bool = false,
+            readingPosition: Double = 0,
+            lastReadAt: Date? = nil,
+            sourceIndex: Int = 0,
+            isListedUpstream: Bool = true
+        ) {
+            self.key = EntityKey.identity(sourceID: sourceID, urlString: url)
+            self.sourceID = sourceID
+            self.seriesURL = seriesURL
+            self.url = url
+            self.name = name
+            self.number = number
+            self.dateUploaded = dateUploaded
+            self.scanlator = scanlator
+            self.isRead = isRead
+            self.readingPosition = readingPosition
+            self.lastReadAt = lastReadAt
+            self.sourceIndex = sourceIndex
+            self.isListedUpstream = isListedUpstream
+        }
     }
 }

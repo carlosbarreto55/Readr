@@ -17,6 +17,13 @@ actor DefaultCatalogRepository: CatalogRepository {
     private let detailCache: SourceMetadataCache<Series>
     private let chapterCache: SourceMetadataCache<[Chapter]>
 
+    /// The latest listing of every series a page has returned, for
+    /// `knownSeries(_:)`. Bounded: a miss only costs the detail screen its
+    /// pre-detail title and cover.
+    private var known: [SeriesID: Series] = [:]
+    private var knownOrder: [SeriesID] = []
+    private let knownLimit: Int
+
     /// - Note: the lifetimes are carried over from the app Readr descends from,
     ///   where they were not visibly tuned. Nothing in `source-metadata-cache`
     ///   fixes a number — only that an expiry exists — so they are stated in one
@@ -28,8 +35,10 @@ actor DefaultCatalogRepository: CatalogRepository {
         detailCache: SourceMetadataCache<Series> = .init(
             maxEntries: 50, lifetime: .seconds(900)),
         chapterCache: SourceMetadataCache<[Chapter]> = .init(
-            maxEntries: 20, lifetime: .seconds(120))
+            maxEntries: 20, lifetime: .seconds(120)),
+        knownLimit: Int = 500
     ) {
+        self.knownLimit = knownLimit
         self.registry = registry
         self.pageCache = pageCache
         self.detailCache = detailCache
@@ -44,24 +53,26 @@ actor DefaultCatalogRepository: CatalogRepository {
 
     func popular(sourceID: Int64, page: Int, refresh: Bool) async throws -> SeriesPage {
         let source = try source(sourceID)
-        return try await cached(
-            key: SourceCacheKey.popular(sourceID: sourceID, page: page),
-            in: pageCache,
-            refresh: refresh
-        ) {
-            try await source.popular(page: page)
-        }
+        return try await remembering(
+            cached(
+                key: SourceCacheKey.popular(sourceID: sourceID, page: page),
+                in: pageCache,
+                refresh: refresh
+            ) {
+                try await source.popular(page: page)
+            })
     }
 
     func latest(sourceID: Int64, page: Int, refresh: Bool) async throws -> SeriesPage {
         let source = try source(sourceID)
-        return try await cached(
-            key: SourceCacheKey.latest(sourceID: sourceID, page: page),
-            in: pageCache,
-            refresh: refresh
-        ) {
-            try await source.latest(page: page)
-        }
+        return try await remembering(
+            cached(
+                key: SourceCacheKey.latest(sourceID: sourceID, page: page),
+                in: pageCache,
+                refresh: refresh
+            ) {
+                try await source.latest(page: page)
+            })
     }
 
     func search(
@@ -72,14 +83,15 @@ actor DefaultCatalogRepository: CatalogRepository {
         refresh: Bool
     ) async throws -> SeriesPage {
         let source = try source(sourceID)
-        return try await cached(
-            key: SourceCacheKey.search(
-                sourceID: sourceID, query: query, page: page, filters: filters),
-            in: pageCache,
-            refresh: refresh
-        ) {
-            try await source.search(query: query, page: page, filters: filters)
-        }
+        return try await remembering(
+            cached(
+                key: SourceCacheKey.search(
+                    sourceID: sourceID, query: query, page: page, filters: filters),
+                in: pageCache,
+                refresh: refresh
+            ) {
+                try await source.search(query: query, page: page, filters: filters)
+            })
     }
 
     func details(for series: Series, refresh: Bool) async throws -> Series {
@@ -102,6 +114,26 @@ actor DefaultCatalogRepository: CatalogRepository {
         ) {
             try await source.chapterList(for: series)
         }
+    }
+
+    func knownSeries(_ id: SeriesID) async -> Series? {
+        known[id]
+    }
+
+    /// Records every entry of a returned page, newest listing winning.
+    private func remembering(_ page: SeriesPage) -> SeriesPage {
+        for series in page.entries {
+            let isNew = known.updateValue(series, forKey: series.id) == nil
+            if isNew { knownOrder.append(series.id) }
+        }
+        if knownOrder.count > knownLimit {
+            let overflow = knownOrder.count - knownLimit
+            for id in knownOrder.prefix(overflow) {
+                known[id] = nil
+            }
+            knownOrder.removeFirst(overflow)
+        }
+        return page
     }
 
     func clearCaches() async {

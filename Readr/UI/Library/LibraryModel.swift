@@ -20,6 +20,7 @@ final class LibraryModel {
     private let library: any LibraryRepository
     private let catalog: any CatalogRepository
     private let settings: any SettingsStore
+    private let refresher: any SeriesRepository
     private let effectContinuation: AsyncStream<LibraryEffect>.Continuation
 
     private var allItems: [LibraryItem] = []
@@ -33,11 +34,13 @@ final class LibraryModel {
     init(
         library: any LibraryRepository,
         catalog: any CatalogRepository,
-        settings: any SettingsStore
+        settings: any SettingsStore,
+        refresher: any SeriesRepository
     ) {
         self.library = library
         self.catalog = catalog
         self.settings = settings
+        self.refresher = refresher
 
         let stream = AsyncStream.makeStream(of: LibraryEffect.self)
         effects = stream.stream
@@ -87,10 +90,22 @@ final class LibraryModel {
         }
     }
 
-    func load() async {
+    /// Pull-to-refresh: refreshes every saved series from its source — which is
+    /// also what repairs blank titles — then reloads what is stored. Returns when
+    /// both have finished, so the system spinner is honest.
+    func refreshLibrary() async {
+        _ = await refresher.refreshLibrary()
+        await load(showingProgress: false)
+    }
+
+    /// - Parameter showingProgress: `false` reloads in place, keeping the grid on
+    ///   screen, for reloads the reader did not ask to watch.
+    func load(showingProgress: Bool = true) async {
         guard !isLoading else { return }
         isLoading = true
-        state.phase = .loading
+        if showingProgress || state.items.isEmpty {
+            state.phase = .loading
+        }
         state.removalFailure = nil
 
         let sources = await catalog.sources()
@@ -139,7 +154,7 @@ final class LibraryModel {
             }
             state.removalFailure = LibraryRemovalFailure(
                 seriesID: id,
-                title: removed.series.title,
+                title: removed.series.displayTitle,
                 message: error.localizedDescription
             )
             rebuildVisibleItems()
@@ -196,10 +211,14 @@ final class LibraryModel {
     }
 
     private func titleOrIdentityPrecedes(_ lhs: LibraryItem, _ rhs: LibraryItem) -> Bool {
-        let leftTitle = normalizedTitle(lhs.series.title)
-        let rightTitle = normalizedTitle(rhs.series.title)
+        // The displayed title, so a blank-titled series sorts where its
+        // placeholder label says it is.
+        let leftTitle = normalizedTitle(lhs.series.displayTitle)
+        let rightTitle = normalizedTitle(rhs.series.displayTitle)
         if leftTitle != rightTitle { return leftTitle < rightTitle }
-        if lhs.series.title != rhs.series.title { return lhs.series.title < rhs.series.title }
+        if lhs.series.displayTitle != rhs.series.displayTitle {
+            return lhs.series.displayTitle < rhs.series.displayTitle
+        }
         if lhs.series.sourceID != rhs.series.sourceID {
             return lhs.series.sourceID < rhs.series.sourceID
         }

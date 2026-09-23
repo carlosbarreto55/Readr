@@ -5,6 +5,9 @@
 
 Saved series with persisted content/source filters and title/date-added/last-read
 sorting. Removal is optimistic and rolls back visibly on persistence failure.
+Pull-to-refresh runs the library refresh (chapter merge and blank-title repair)
+and reloads in place. Blank titles display and sort by their URL-derived
+placeholder.
 
 | File | Responsibility |
 | --- | --- |

@@ -5,11 +5,11 @@ Swift Testing (`import Testing`), one suite per type under test.
 | Path | Contents |
 | --- | --- |
 | `Core/` | `stableHash64` and `computeSourceID` guard rails, the metadata cache, cache keys, and the catalog pager |
-| `Domain/` | Model identity, content shapes, catalog paging values, filters, and the detail merge |
-| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository, settings, store survival, the HTTP client, `HTMLSource`, and the catalog repository |
+| `Domain/` | Model identity, content shapes, catalog paging values, filters, the detail merge, reading order, and display titles |
+| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository and its chapter merge, settings, store survival and migration, the HTTP client, `HTMLSource`, and the catalog and series repositories |
 | `Sources/` | Fixture-driven tests for FreeWebNovel and AsuraScans |
-| `UI/` | Route/navigation identity plus Library and Browse presentation-model behavior |
-| `Support/` | `StubSource`, `StubURLProtocol`, and the bundled fixture loader |
+| `UI/` | Route/navigation identity plus Library, Browse, and Series presentation-model behavior |
+| `Support/` | `StubSource`, `StubURLProtocol`, the fixture loader, `InMemoryLibraryRepository` and `ScriptedCatalogRepository` (contract-faithful fakes), `RecordingSeriesRepository`, and `waitUntil` |
 | `Fixtures/<sitename>/` | Saved real-markup captures or hand-reduced extracts of observed real markup, one directory per source |
 
 Testing approach:
@@ -27,8 +27,8 @@ in the first two cases, stranded downloaded files in the third. Fix the code, ne
 the expectation.
 
 `StoreSurvivalTests` writes to a real on-disk store, closes it, and reopens it
-through `ReadrMigrationPlan`. There is no migration to test yet; it is the harness
-the first one extends, and its doc comment says how.
+through `ReadrMigrationPlan`. Its migration tests write through the previous
+schema's frozen models and assert the migrated values; each new stage extends it.
 
 Repository tests run against an in-memory `ModelContainer`. Settings tests build a
 `UserDefaults` suite of their own, so a run leaves nothing behind for the next.

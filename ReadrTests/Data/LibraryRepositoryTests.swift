@@ -10,7 +10,7 @@ struct LibraryRepositoryTests {
     private let otherURL = URL(string: "https://example.test/series/two")!
 
     private func makeContainer() throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV1.self)
+        let schema = Schema(versionedSchema: CurrentSchema.self)
         return try ModelContainer(
             for: schema,
             migrationPlan: ReadrMigrationPlan.self,

@@ -1,7 +1,7 @@
 # Codemap: `UI/`
 
-> **Library and Browse implemented.** Downloads and Settings remain explicit tab
-> placeholders; Series and Reader remain later navigation destinations.
+> **Library, Browse, and Series implemented.** Downloads and Settings remain
+> explicit tab placeholders; the Reader remains a later destination.
 
 SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 
@@ -10,7 +10,7 @@ SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 | `Navigation/` | Tab shell and typed navigation paths |
 | `Library/` | Offline saved-series grid, filters, sorting, and membership removal |
 | `Browse/` | Source selection and paged popular, latest, and search catalogs |
-| `Series/` | Series detail and chapter list |
+| `Series/` | Series detail, chapter list, and read state |
 | `Reader/` | The unified reader |
 | `Downloads/` | Queue and stored chapters |
 | `Settings/` | Preferences |

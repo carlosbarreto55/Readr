@@ -23,6 +23,19 @@ enum ChapterMapper {
         )
     }
 
+    /// The chapter with the reader's state for it.
+    static func toLibraryChapter(_ entity: ChapterEntity) -> LibraryChapter? {
+        guard let chapter = toDomain(entity) else { return nil }
+        return LibraryChapter(
+            chapter: chapter,
+            isRead: entity.isRead,
+            readingPosition: entity.readingPosition,
+            lastReadAt: entity.lastReadAt,
+            sourceIndex: entity.sourceIndex,
+            isListedUpstream: entity.isListedUpstream
+        )
+    }
+
     static func makeEntity(from chapter: Chapter) -> ChapterEntity {
         ChapterEntity(
             sourceID: chapter.sourceID,

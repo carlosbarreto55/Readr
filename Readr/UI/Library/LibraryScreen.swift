@@ -8,14 +8,18 @@ struct LibraryScreen: View {
     var body: some View {
         Group {
             if let model {
-                LibraryContent(state: model.state, onAction: model.onAction)
-                    .task {
-                        model.onAction(.appeared)
-                        for await effect in model.effects {
-                            guard !Task.isCancelled else { break }
-                            handle(effect)
-                        }
+                LibraryContent(
+                    state: model.state,
+                    onAction: model.onAction,
+                    onRefresh: { await model.refreshLibrary() }
+                )
+                .task {
+                    model.onAction(.appeared)
+                    for await effect in model.effects {
+                        guard !Task.isCancelled else { break }
+                        handle(effect)
                     }
+                }
             } else if let container {
                 ProgressView("Loading Library…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -24,7 +28,8 @@ struct LibraryScreen: View {
                         model = LibraryModel(
                             library: container.library,
                             catalog: container.catalog,
-                            settings: container.settings
+                            settings: container.settings,
+                            refresher: container.series
                         )
                     }
             } else {
@@ -35,6 +40,10 @@ struct LibraryScreen: View {
                 }
                 .navigationTitle("Library")
             }
+        }
+        .onChange(of: navigation.libraryRevision) {
+            guard let model else { return }
+            Task { await model.load(showingProgress: false) }
         }
         .onChange(of: navigation.selectedTab) { _, selectedTab in
             guard selectedTab == .library, let model else { return }

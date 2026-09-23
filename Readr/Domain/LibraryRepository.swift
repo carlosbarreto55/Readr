@@ -29,10 +29,13 @@ public protocol LibraryRepository: Sendable {
     /// The stored chapters of a saved series.
     ///
     /// **Order is not part of this contract.** The store holds chapters as a set
-    /// keyed by identity, not as a list, so a caller that needs an order imposes
-    /// one. Whether an explicit stored index is required is the open question
-    /// M6 answers when it first refreshes a chapter list against a live source.
+    /// keyed by identity, not as a list. A caller that needs an order asks for
+    /// `libraryChapters(for:)`, which is in reading order.
     func chapters(for id: SeriesID) async throws -> [Chapter]
+
+    /// The stored chapters of a saved series with the reader's state for each, in
+    /// reading order — see `ChapterReadingOrder`.
+    func libraryChapters(for id: SeriesID) async throws -> [LibraryChapter]
 
     /// Stores chapters against a saved series.
     ///
@@ -45,6 +48,31 @@ public protocol LibraryRepository: Sendable {
     ///   either attach it to the wrong series or, if its identity is already
     ///   stored elsewhere, reparent that row and the read state it carries.
     func storeChapters(_ chapters: [Chapter], for id: SeriesID) async throws
+
+    /// Merges a refreshed chapter list, in source order, into a saved series.
+    ///
+    /// This is the refresh merge `chapter-refresh-state-preservation` defines:
+    /// - a stored chapter still listed has its metadata and source position
+    ///   updated, and keeps its read state and position;
+    /// - a new chapter is inserted unread;
+    /// - a stored chapter the list omits is kept, with everything stored for it,
+    ///   and marked as no longer listed upstream.
+    ///
+    /// The merge commits entirely or not at all.
+    ///
+    /// - Throws: `emptyChapterList` when `chapters` is empty — a source that
+    ///   returns nothing has failed, and treating it as an emptied series would
+    ///   mark every chapter unlisted. `chapterNotInSeries` for a foreign chapter.
+    ///   `seriesNotSaved` when the series is not saved. Nothing is written when
+    ///   anything throws.
+    func mergeChapterList(_ chapters: [Chapter], for id: SeriesID) async throws
+
+    /// Marks stored chapters read or unread.
+    ///
+    /// Marking read moves the position to the end; marking unread resets it to
+    /// the start, so the chapter list and a reopened chapter agree. Chapters not
+    /// stored against `series` are ignored.
+    func setRead(_ chapterIDs: [ChapterID], isRead: Bool, in series: SeriesID) async throws
 }
 
 /// What a library operation can fail with.
@@ -56,4 +84,8 @@ public enum LibraryRepositoryError: Error, Equatable, Sendable {
     /// `(sourceID, url)` and a chapter carries its own `seriesURL`, so this is a
     /// caller bug rather than a condition the store can resolve.
     case chapterNotInSeries(chapter: ChapterID, series: SeriesID)
+
+    /// A refresh returned no chapters. Treated as a failed refresh rather than as
+    /// a series whose every chapter vanished.
+    case emptyChapterList(SeriesID)
 }

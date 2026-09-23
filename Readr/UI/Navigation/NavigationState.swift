@@ -16,6 +16,14 @@ public final class NavigationState {
     public var downloadsPath: [DownloadsRoute] = []
     public var settingsPath: [SettingsRoute] = []
 
+    /// Bumped when stored library state changed outside the Library screen — a
+    /// background or activation refresh — so a visible Library reloads.
+    public private(set) var libraryRevision = 0
+
+    public func libraryDidChange() {
+        libraryRevision += 1
+    }
+
     public init() {}
 
     /// How deep a tab has navigated. `0` is its root.

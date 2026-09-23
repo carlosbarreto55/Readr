@@ -67,6 +67,7 @@ actor FakeBrowseCatalogRepository: CatalogRepository {
 
     func details(for series: Series, refresh: Bool) -> Series { series }
     func chapters(for series: Series, refresh: Bool) -> [Chapter] { [] }
+    func knownSeries(_ id: SeriesID) -> Series? { nil }
     func supports(_ filter: Filter, sourceID: Int64) -> Bool { false }
     func clearCaches() {}
 
@@ -169,5 +170,8 @@ actor FakeBrowseLibraryRepository: LibraryRepository {
     }
 
     func chapters(for id: SeriesID) -> [Chapter] { [] }
+    func libraryChapters(for id: SeriesID) -> [LibraryChapter] { [] }
     func storeChapters(_ chapters: [Chapter], for id: SeriesID) {}
+    func mergeChapterList(_ chapters: [Chapter], for id: SeriesID) {}
+    func setRead(_ chapterIDs: [ChapterID], isRead: Bool, in series: SeriesID) {}
 }
