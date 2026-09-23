@@ -7,6 +7,7 @@
 | `SourceMetadataCache.swift` | Bounded, expiring, LRU in-memory cache of *parsed* source responses. An `actor`; time is injected so expiry is tested by advancing a clock rather than by sleeping. |
 | `SourceCacheKey.swift` | The one place a request becomes a cache key. Length-prefixes every variable part, so two different filter sets cannot serialize identically. |
 | `Broadcaster.swift` | Fans a value out to many `AsyncStream`s; owned by an actor. The download queue's snapshot stream uses it. |
+| `EffectChannel.swift` | Hands each screen appearance a fresh stream of its model's navigation effects, buffering any sent while nobody listens. A single long-lived `AsyncStream` dies the first time SwiftUI cancels the consuming `.task`. |
 | `ChapterTextParser.swift` | Chapter HTML → `ChapterTextBlock`s (paragraph, heading, quote, scene break) with bold/italic runs, for the native text renderer. SwiftSoup; pure; run off the main actor. |
 | `RefreshThrottle.swift` | Decides whether an opportunistic refresh is due; the shell's activation refresh uses it. |
 | `CatalogPager.swift` | The paging state machine: append in order, discard an entry already loaded, one request in flight, and a retry that re-requests the same index. Driven by a closure, so it names no repository and no framework. |

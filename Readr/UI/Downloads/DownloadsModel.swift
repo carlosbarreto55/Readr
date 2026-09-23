@@ -5,20 +5,15 @@ import Observation
 @MainActor
 final class DownloadsModel {
     private let downloads: any DownloadRepository
-    private let effectContinuation: AsyncStream<DownloadsEffect>.Continuation
+    private let effectChannel = EffectChannel<DownloadsEffect>()
 
     private(set) var state = DownloadsState()
-    let effects: AsyncStream<DownloadsEffect>
+    /// A live stream of navigation effects. A new one per call: each screen
+    /// appearance subscribes afresh — see `EffectChannel`.
+    var effects: AsyncStream<DownloadsEffect> { effectChannel.stream() }
 
     init(downloads: any DownloadRepository) {
         self.downloads = downloads
-        let stream = AsyncStream.makeStream(of: DownloadsEffect.self)
-        effects = stream.stream
-        effectContinuation = stream.continuation
-    }
-
-    deinit {
-        effectContinuation.finish()
     }
 
     func onAction(_ action: DownloadsAction) {
@@ -39,7 +34,7 @@ final class DownloadsModel {
             state.isDeleteAllConfirmationPresented = false
             perform("delete all downloads") { try await $0.deleteAll() }
         case .openSeries(let id):
-            effectContinuation.yield(.openSeries(id))
+            effectChannel.send(.openSeries(id))
         case .dismissError:
             state.errorMessage = nil
         }

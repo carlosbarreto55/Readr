@@ -25,7 +25,7 @@ final class BrowseModel {
     private let catalog: any CatalogRepository
     private let library: any LibraryRepository
     private let sourceID: Int64?
-    private let effectContinuation: AsyncStream<BrowseEffect>.Continuation
+    private let effectChannel = EffectChannel<BrowseEffect>()
 
     private var pager: CatalogPager?
     private var requestGeneration = 0
@@ -39,7 +39,9 @@ final class BrowseModel {
     private var hasAppeared = false
 
     private(set) var state: BrowseState
-    let effects: AsyncStream<BrowseEffect>
+    /// A live stream of navigation effects. A new one per call: each screen
+    /// appearance subscribes afresh — see `EffectChannel`.
+    var effects: AsyncStream<BrowseEffect> { effectChannel.stream() }
 
     init(
         sourceID: Int64?,
@@ -53,13 +55,6 @@ final class BrowseModel {
             destination: sourceID.map(BrowseDestination.catalog(sourceID:)) ?? .sources
         )
 
-        let stream = AsyncStream.makeStream(of: BrowseEffect.self)
-        self.effects = stream.stream
-        self.effectContinuation = stream.continuation
-    }
-
-    deinit {
-        effectContinuation.finish()
     }
 
     func onAction(_ action: BrowseAction) {
@@ -82,9 +77,9 @@ final class BrowseModel {
             hasAppeared = true
             Task { await loadInitialState() }
         case .sourceSelected(let sourceID):
-            effectContinuation.yield(.openSource(sourceID))
+            effectChannel.send(.openSource(sourceID))
         case .openSeries(let id):
-            effectContinuation.yield(.openSeries(id))
+            effectChannel.send(.openSeries(id))
         default:
             break
         }

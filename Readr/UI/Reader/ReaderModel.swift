@@ -13,7 +13,7 @@ final class ReaderModel {
     private let repository: any ChapterRepository
     private let settings: any SettingsStore
     private let downloads: any DownloadRepository
-    private let effectContinuation: AsyncStream<ReaderEffect>.Continuation
+    private let effectChannel = EffectChannel<ReaderEffect>()
 
     private var hasAppeared = false
     private var loadToken = 0
@@ -24,7 +24,9 @@ final class ReaderModel {
     private var persistTask: Task<Void, Never>?
 
     private(set) var state: ReaderState
-    let effects: AsyncStream<ReaderEffect>
+    /// A live stream of navigation effects. A new one per call: each screen
+    /// appearance subscribes afresh — see `EffectChannel`.
+    var effects: AsyncStream<ReaderEffect> { effectChannel.stream() }
 
     init(
         route: ReaderRoute,
@@ -37,15 +39,7 @@ final class ReaderModel {
         self.settings = settings
         self.downloads = downloads
 
-        let stream = AsyncStream.makeStream(of: ReaderEffect.self)
-        effects = stream.stream
-        effectContinuation = stream.continuation
-
         state = ReaderState(route: route, preferences: settings.readerPreferences)
-    }
-
-    deinit {
-        effectContinuation.finish()
     }
 
     func onAction(_ action: ReaderAction) {
@@ -83,7 +77,7 @@ final class ReaderModel {
             open(id)
         case .close:
             persistCurrent(force: true)
-            effectContinuation.yield(.close)
+            effectChannel.send(.close)
         default:
             break
         }

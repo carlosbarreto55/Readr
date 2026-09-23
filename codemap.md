@@ -65,7 +65,7 @@ remote content.
 every rule below; where the two disagree, `architecture.md` wins.*
 
 - **Presentation model:** each screen is four files — `Screen` + `Content` + `Model` + `State`.
-- **State management:** `@Observable @MainActor` models expose `state`, an `Effect` stream, and `onAction(_:)`.
+- **State management:** `@Observable @MainActor` models expose `state`, an `Effect` stream (fresh per subscription, via `EffectChannel`), and `onAction(_:)`.
 - **Domain boundary:** `Domain/` is framework-free — immutable `Sendable` structs and protocols only.
 - **Data orchestration:** `Data/Repository/` is the only layer allowed to coordinate `SourceRegistry` and local storage.
 - **Plugin model:** site integrations live under `Sources/`, extending `HTMLSource`.

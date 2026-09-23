@@ -15,7 +15,7 @@ final class SeriesModel {
     private let catalog: any CatalogRepository
     private let settings: any SettingsStore
     private let downloads: any DownloadRepository
-    private let effectContinuation: AsyncStream<SeriesEffect>.Continuation
+    private let effectChannel = EffectChannel<SeriesEffect>()
 
     private var hasAppeared = false
     private var isLoading = false
@@ -25,7 +25,9 @@ final class SeriesModel {
     private var isChangingMembership = false
 
     private(set) var state: SeriesState
-    let effects: AsyncStream<SeriesEffect>
+    /// A live stream of navigation effects. A new one per call: each screen
+    /// appearance subscribes afresh — see `EffectChannel`.
+    var effects: AsyncStream<SeriesEffect> { effectChannel.stream() }
 
     init(
         id: SeriesID,
@@ -42,15 +44,7 @@ final class SeriesModel {
         self.settings = settings
         self.downloads = downloads
 
-        let stream = AsyncStream.makeStream(of: SeriesEffect.self)
-        effects = stream.stream
-        effectContinuation = stream.continuation
-
         state = SeriesState(chapterOrder: settings.value(for: Self.chapterOrderKey))
-    }
-
-    deinit {
-        effectContinuation.finish()
     }
 
     func onAction(_ action: SeriesAction) {
@@ -263,7 +257,7 @@ final class SeriesModel {
         guard let series = state.series,
             state.chapters.contains(where: { $0.id == chapterID })
         else { return }
-        effectContinuation.yield(
+        effectChannel.send(
             .openReader(
                 ReaderRoute(
                     sourceID: series.sourceID,

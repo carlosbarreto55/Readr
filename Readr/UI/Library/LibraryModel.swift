@@ -21,7 +21,7 @@ final class LibraryModel {
     private let catalog: any CatalogRepository
     private let settings: any SettingsStore
     private let refresher: any SeriesRepository
-    private let effectContinuation: AsyncStream<LibraryEffect>.Continuation
+    private let effectChannel = EffectChannel<LibraryEffect>()
 
     private var allItems: [LibraryItem] = []
     private var sourceNames: [Int64: String] = [:]
@@ -29,7 +29,9 @@ final class LibraryModel {
     private var removingIDs: Set<SeriesID> = []
 
     private(set) var state: LibraryState
-    let effects: AsyncStream<LibraryEffect>
+    /// A live stream of navigation effects. A new one per call: each screen
+    /// appearance subscribes afresh — see `EffectChannel`.
+    var effects: AsyncStream<LibraryEffect> { effectChannel.stream() }
 
     init(
         library: any LibraryRepository,
@@ -42,19 +44,11 @@ final class LibraryModel {
         self.settings = settings
         self.refresher = refresher
 
-        let stream = AsyncStream.makeStream(of: LibraryEffect.self)
-        effects = stream.stream
-        effectContinuation = stream.continuation
-
         state = LibraryState(
             contentFilter: settings.value(for: Self.contentFilterKey),
             selectedSourceID: Int64(settings.value(for: Self.sourceIDKey)),
             sort: settings.value(for: Self.sortKey)
         )
-    }
-
-    deinit {
-        effectContinuation.finish()
     }
 
     func onAction(_ action: LibraryAction) {
@@ -85,7 +79,7 @@ final class LibraryModel {
             state.searchText = query
             rebuildVisibleItems()
         case .openSeries(let id):
-            effectContinuation.yield(.openSeries(id))
+            effectChannel.send(.openSeries(id))
         case .removeSeries(let id), .retryRemoval(let id):
             Task { await removeSeries(id) }
         case .dismissRemovalFailure:
