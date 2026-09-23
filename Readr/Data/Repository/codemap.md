@@ -7,6 +7,7 @@ the filesystem, and Spotlight — and they are the only layer permitted to.
 | --- | --- |
 | `SwiftDataLibraryRepository.swift` | `LibraryRepository` over SwiftData: saved items with reader-owned timestamps and their chapter state. |
 | `DefaultCatalogRepository.swift` | `CatalogRepository` over `SourceRegistry`, with the metadata caches in front of it, and a bounded memory of listed series. |
+| `DefaultChapterRepository.swift` | `ChapterRepository` over the library and catalog: stored chapters for saved series, catalog chapters otherwise; content from the source; progress only for saved series. |
 | `DefaultSeriesRepository.swift` | `SeriesRepository` over the library and catalog contracts: detail refresh, chapter merge, and the library refresh with blank-title repair. An actor, so two library refreshes never run at once. |
 
 A `@ModelActor`, so every access runs on its own `ModelContext` off the main actor.

@@ -28,6 +28,8 @@ public final class AppContainer: Sendable {
     public let catalog: any CatalogRepository
     /// Series detail: the catalog's view of a series folded into the library's.
     public let series: any SeriesRepository
+    /// What the Reader reads: chapters, content, and progress.
+    public let chapters: any ChapterRepository
 
     /// The one outbound request path. Held here so every source shares one
     /// concurrency budget per host; a source that built its own would get a
@@ -49,6 +51,7 @@ public final class AppContainer: Sendable {
         self.http = http ?? HTTPClient(session: urlSession)
         self.catalog = DefaultCatalogRepository(registry: sources)
         self.series = DefaultSeriesRepository(library: library, catalog: catalog)
+        self.chapters = DefaultChapterRepository(library: library, catalog: catalog)
     }
 
     /// The container the app runs with.

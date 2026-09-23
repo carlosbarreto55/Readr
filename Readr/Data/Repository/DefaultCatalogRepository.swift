@@ -116,6 +116,10 @@ actor DefaultCatalogRepository: CatalogRepository {
         }
     }
 
+    func chapterContent(for chapter: Chapter) async throws -> ChapterContent {
+        try await source(chapter.sourceID).chapterContent(for: chapter)
+    }
+
     func knownSeries(_ id: SeriesID) async -> Series? {
         known[id]
     }

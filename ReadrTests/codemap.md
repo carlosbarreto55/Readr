@@ -4,11 +4,11 @@ Swift Testing (`import Testing`), one suite per type under test.
 
 | Path | Contents |
 | --- | --- |
-| `Core/` | `stableHash64` and `computeSourceID` guard rails, the metadata cache, cache keys, and the catalog pager |
-| `Domain/` | Model identity, content shapes, catalog paging values, filters, the detail merge, reading order, and display titles |
-| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository and its chapter merge, settings, store survival and migration, the HTTP client, `HTMLSource`, and the catalog and series repositories |
+| `Core/` | `stableHash64` and `computeSourceID` guard rails, the metadata cache, cache keys, the catalog pager, the refresh throttle, and the chapter text parser |
+| `Domain/` | Model identity, content shapes, catalog paging values, filters, the detail merge, reading order, display titles, and reader preferences |
+| `Data/` | `SourceRegistry`, entity keys, mappers, the library repository and its chapter merge, settings, store survival and migration, the HTTP client, `HTMLSource`, the catalog, series, and chapter repositories, and reading progress |
 | `Sources/` | Fixture-driven tests for FreeWebNovel and AsuraScans |
-| `UI/` | Route/navigation identity plus Library, Browse, and Series presentation-model behavior |
+| `UI/` | Route/navigation identity plus Library, Browse, Series, Reader, and Settings presentation-model behavior |
 | `Support/` | `StubSource`, `StubURLProtocol`, the fixture loader, `InMemoryLibraryRepository` and `ScriptedCatalogRepository` (contract-faithful fakes), `RecordingSeriesRepository`, and `waitUntil` |
 | `Fixtures/<sitename>/` | Saved real-markup captures or hand-reduced extracts of observed real markup, one directory per source |
 

@@ -24,6 +24,7 @@ actor InMemoryLibraryRepository: LibraryRepository {
     private(set) var mergeCalls: [SeriesID] = []
     private(set) var saveCalls: [Series] = []
     private(set) var removeCalls: [SeriesID] = []
+    private(set) var progressCalls: [ChapterID] = []
 
     init(items: [LibraryItem] = []) {
         for item in items {
@@ -163,6 +164,27 @@ actor InMemoryLibraryRepository: LibraryRepository {
         }
     }
 
+    func recordProgress(
+        _ chapter: ChapterID, in series: SeriesID, position: Double, reachedEnd: Bool, at date: Date
+    ) throws {
+        progressCalls.append(chapter)
+        try check("recordProgress")
+        guard var entry = stored[series] else {
+            throw LibraryRepositoryError.seriesNotSaved(series)
+        }
+        guard let existing = entry.chapters[chapter] else { return }
+        entry.chapters[chapter] = LibraryChapter(
+            chapter: existing.chapter,
+            isRead: existing.isRead || reachedEnd,
+            readingPosition: position,
+            lastReadAt: date,
+            sourceIndex: existing.sourceIndex,
+            isListedUpstream: existing.isListedUpstream)
+        entry.item = LibraryItem(
+            series: entry.item.series, dateAdded: entry.item.dateAdded, lastReadAt: date)
+        stored[series] = entry
+    }
+
     private func check(_ operation: String) throws {
         if failures.contains(operation) { throw FakeRepositoryError.failed }
     }
@@ -175,6 +197,8 @@ actor ScriptedCatalogRepository: CatalogRepository {
     private var detailResults: [SeriesID: Result<Series, FakeRepositoryError>] = [:]
     private var chapterResults: [SeriesID: Result<[Chapter], FakeRepositoryError>] = [:]
     private var known: [SeriesID: Series] = [:]
+    private var contentResults: [ChapterID: [Result<ChapterContent, FakeRepositoryError>]] = [:]
+    private(set) var contentCalls: [ChapterID] = []
     private(set) var detailCalls: [SeriesID] = []
     private(set) var chapterCalls: [SeriesID] = []
     private(set) var refreshFlags: [Bool] = []
@@ -189,6 +213,11 @@ actor ScriptedCatalogRepository: CatalogRepository {
 
     func setChapters(_ result: Result<[Chapter], FakeRepositoryError>, for id: SeriesID) {
         chapterResults[id] = result
+    }
+
+    /// Queues answers for a chapter's content, served in order; the last repeats.
+    func setContent(_ results: [Result<ChapterContent, FakeRepositoryError>], for id: ChapterID) {
+        contentResults[id] = results
     }
 
     func setKnown(_ series: Series) {
@@ -221,6 +250,18 @@ actor ScriptedCatalogRepository: CatalogRepository {
         case .failure(let error): throw error
         case nil: return []
         }
+    }
+
+    func chapterContent(for chapter: Chapter) throws -> ChapterContent {
+        contentCalls.append(chapter.id)
+        guard var queue = contentResults[chapter.id], let next = queue.first else {
+            throw FakeRepositoryError.failed
+        }
+        if queue.count > 1 {
+            queue.removeFirst()
+            contentResults[chapter.id] = queue
+        }
+        return try next.get()
     }
 
     func knownSeries(_ id: SeriesID) -> Series? { known[id] }

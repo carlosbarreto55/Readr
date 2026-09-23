@@ -85,6 +85,9 @@ private actor FakeLibraryRepository: LibraryRepository {
     func storeChapters(_ chapters: [Chapter], for id: SeriesID) {}
     func mergeChapterList(_ chapters: [Chapter], for id: SeriesID) {}
     func setRead(_ chapterIDs: [ChapterID], isRead: Bool, in series: SeriesID) {}
+    func recordProgress(
+        _ chapter: ChapterID, in series: SeriesID, position: Double, reachedEnd: Bool, at date: Date
+    ) {}
 }
 
 private struct FakeCatalogRepository: CatalogRepository {
@@ -118,6 +121,9 @@ private struct FakeCatalogRepository: CatalogRepository {
         throw LibraryTestError.unexpectedCatalogCall
     }
 
+    func chapterContent(for chapter: Chapter) async throws -> ChapterContent {
+        throw LibraryTestError.unexpectedCatalogCall
+    }
     func knownSeries(_ id: SeriesID) async -> Series? { nil }
     func supports(_ filter: Filter, sourceID: Int64) async -> Bool { false }
     func clearCaches() async {}

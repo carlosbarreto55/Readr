@@ -163,6 +163,33 @@ actor SwiftDataLibraryRepository: LibraryRepository {
         }
     }
 
+    func recordProgress(
+        _ chapter: ChapterID,
+        in series: SeriesID,
+        position: Double,
+        reachedEnd: Bool,
+        at date: Date
+    ) throws {
+        guard let existing = try entity(for: series) else {
+            throw LibraryRepositoryError.seriesNotSaved(series)
+        }
+        let key = EntityKey.identity(sourceID: chapter.sourceID, url: chapter.url)
+        guard let stored = existing.chapters.first(where: { $0.key == key }) else { return }
+
+        stored.readingPosition = min(max(position.isFinite ? position : 0, 0), 1)
+        if reachedEnd {
+            stored.isRead = true
+        }
+        stored.lastReadAt = date
+        existing.lastReadAt = date
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
+    }
+
     /// Rejects foreign chapters before anything is written.
     ///
     /// Lookups during a write are scoped to one series, so a chapter whose

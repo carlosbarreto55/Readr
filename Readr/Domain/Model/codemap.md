@@ -17,14 +17,13 @@ annotations, no framework imports beyond Foundation.
 | `SeriesPage` | struct — one page of catalog results plus a has-more flag |
 | `SourceInfo` | struct — source metadata exposed to the UI |
 | `Filter` / `FilterList` | catalog filtering primitives |
+| `ReaderPreferences` | struct — reader theme, font, text scale, page layout; plus `ReaderSettingKeys` and `SettingsStore` accessors |
 
 Planned, each arriving with the change that needs it:
 
 | Type | Shape |
 | --- | --- |
 | `DownloadItem` / `DownloadState` | queue entry and its lifecycle |
-| `AppSettings` / `AppTheme` | user preferences |
-| `ManhwaLayout` / `ManhwaZoom` | reader display preferences |
 | `LibrarySearchResult` | a Spotlight or in-app search hit |
 
 `Series` and `Chapter` define equality and hashing on `(sourceID, url)` alone, so

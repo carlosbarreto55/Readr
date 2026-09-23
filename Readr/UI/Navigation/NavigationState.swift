@@ -16,8 +16,20 @@ public final class NavigationState {
     public var downloadsPath: [DownloadsRoute] = []
     public var settingsPath: [SettingsRoute] = []
 
-    /// Bumped when stored library state changed outside the Library screen — a
-    /// background or activation refresh — so a visible Library reloads.
+    /// The chapter the Reader is presenting, outside every tab's path.
+    ///
+    /// Clearing it closes the Reader and bumps `libraryRevision`, because reading
+    /// changed progress that Library and Series display.
+    public var presentedReader: ReaderRoute? {
+        didSet {
+            if oldValue != nil, presentedReader == nil {
+                libraryDidChange()
+            }
+        }
+    }
+
+    /// Bumped when stored library state changed outside the screen showing it — a
+    /// background or activation refresh, or reading — so visible screens reload.
     public private(set) var libraryRevision = 0
 
     public func libraryDidChange() {

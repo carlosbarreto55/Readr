@@ -1,3 +1,5 @@
+import Foundation
+
 /// The reader's saved series and the chapter state belonging to them.
 ///
 /// Domain values in and out. Nothing in this contract names a storage type — see
@@ -73,6 +75,22 @@ public protocol LibraryRepository: Sendable {
     /// the start, so the chapter list and a reopened chapter agree. Chapters not
     /// stored against `series` are ignored.
     func setRead(_ chapterIDs: [ChapterID], isRead: Bool, in series: SeriesID) async throws
+
+    /// Records the reader's position in a stored chapter, and stamps it and its
+    /// series as read now — which is what the Library's Last Read sort reads.
+    ///
+    /// `reachedEnd` marks the chapter read. A chapter already read is never
+    /// marked unread by re-reading it.
+    ///
+    /// - Throws: `seriesNotSaved` when the series is not saved. A chapter not
+    ///   stored against the series is ignored.
+    func recordProgress(
+        _ chapter: ChapterID,
+        in series: SeriesID,
+        position: Double,
+        reachedEnd: Bool,
+        at date: Date
+    ) async throws
 }
 
 /// What a library operation can fail with.

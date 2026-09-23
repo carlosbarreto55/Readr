@@ -8,13 +8,13 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation through series detail.** The rules below are
+> **Status: foundation through the Reader.** The rules below are
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
 > implemented, along with the FreeWebNovel and AsuraScans plugins and the
-> repository-backed Library, Browse, and Series screens. Reader, Downloads,
-> Settings, background work, and Spotlight are not.
+> repository-backed Library, Browse, Series, Reader, and Settings screens.
+> Downloads, background work, and Spotlight are not.
 
 ---
 
@@ -386,7 +386,19 @@ start at the leading screen edge.
 text view rather than in a web view. The domain still carries HTML — the contract
 is unchanged — but the renderer is native, which is what makes Dynamic Type,
 text selection, reader themes, and system typography work. A web view would be a
-faster port and a worse reader.
+faster port and a worse reader. HTML is reduced to text blocks off the main
+actor; the reader's text size multiplies the Dynamic Type size rather than
+replacing it.
+
+**The leading edge belongs to back.** A full-screen cover has no interactive pop,
+so the Reader reserves a strip along the leading edge: it absorbs touches, so no
+scroll or page turn can begin there, and a rightward drag on it closes the
+Reader.
+
+**Progress belongs to the library.** Reading position is stored against a
+library chapter record. A chapter of a series outside the library reads normally
+but its progress is not kept, and the Reader says so; the Reader never saves a
+series on the reader's behalf.
 
 **Platform affordances** replace their Material equivalents directly: `.searchable`
 for search fields, `.refreshable` for pull-to-refresh, swipe actions and context

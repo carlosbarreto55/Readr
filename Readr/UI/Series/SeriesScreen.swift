@@ -5,8 +5,8 @@ struct SeriesScreen: View {
     let id: SeriesID
 
     @Environment(\.appContainer) private var container
+    @Environment(NavigationState.self) private var navigation
     @State private var model: SeriesModel?
-    @State private var pendingReader: ReaderRoute?
 
     var body: some View {
         Group {
@@ -29,15 +29,9 @@ struct SeriesScreen: View {
         .task(id: id) {
             await runModel()
         }
-        .alert(
-            "Reader Not Built Yet",
-            isPresented: Binding(
-                get: { pendingReader != nil },
-                set: { if !$0 { pendingReader = nil } })
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Chapters open in the Reader, which arrives in the next milestone.")
+        .onChange(of: navigation.libraryRevision) {
+            // Reading or a refresh elsewhere changed what is stored.
+            model?.onAction(.storedStateChanged)
         }
     }
 
@@ -65,7 +59,7 @@ struct SeriesScreen: View {
             guard !Task.isCancelled else { return }
             switch effect {
             case .openReader(let route):
-                pendingReader = route
+                navigation.presentedReader = route
             }
         }
     }

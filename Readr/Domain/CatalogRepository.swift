@@ -42,6 +42,10 @@ public protocol CatalogRepository: Sendable {
     /// A series' chapters as the source lists them, in source order.
     func chapters(for series: Series, refresh: Bool) async throws -> [Chapter]
 
+    /// A chapter's content, from its source. Never cached: a chapter body is
+    /// large and read once, and the Reader's forced re-fetch must reach the site.
+    func chapterContent(for chapter: Chapter) async throws -> ChapterContent
+
     /// The series as the most recent catalog page listing it described it, or
     /// `nil` if no page this session has listed it.
     ///

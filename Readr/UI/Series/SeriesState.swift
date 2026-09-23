@@ -95,6 +95,9 @@ enum SeriesAction: Sendable {
     case markPreviousRead(ChapterID)
     case selectChapterOrder(SeriesChapterOrder)
     case toggleSynopsis
+    /// Stored state changed elsewhere — the Reader recorded progress — so the
+    /// shown read state is re-read from the store. No network.
+    case storedStateChanged
 }
 
 enum SeriesEffect: Sendable, Equatable {

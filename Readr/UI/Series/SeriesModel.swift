@@ -52,7 +52,7 @@ final class SeriesModel {
 
     func onAction(_ action: SeriesAction) {
         switch action {
-        case .appeared, .retry:
+        case .appeared, .retry, .storedStateChanged:
             handleLoading(action)
         case .toggleLibrary, .retryMembership, .dismissMembershipFailure, .dismissRefreshFailure:
             handleMembership(action)
@@ -80,9 +80,19 @@ final class SeriesModel {
             Task { await load() }
         case .retry:
             Task { await load() }
+        case .storedStateChanged:
+            Task { await reloadStored() }
         default:
             break
         }
+    }
+
+    /// Re-reads stored state without refreshing from the source.
+    func reloadStored() async {
+        guard state.isSaved, !isChangingMembership,
+            let snapshot = try? await repository.stored(id)
+        else { return }
+        apply(snapshot)
     }
 
     private func handleMembership(_ action: SeriesAction) {

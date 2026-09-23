@@ -56,11 +56,14 @@ struct RootTabView: View {
 
             Tab(AppTab.settings.title, systemImage: AppTab.settings.systemImage, value: .settings) {
                 NavigationStack(path: $navigation.settingsPath) {
-                    PlaceholderDestination(tab: .settings)
+                    SettingsScreen()
                 }
             }
         }
         .environment(navigation)
+        .fullScreenCover(item: $navigation.presentedReader) { route in
+            ReaderScreen(route: route)
+        }
         .onChange(of: scenePhase, initial: true) { _, phase in
             guard phase == .active else { return }
             refreshLibraryIfDue()
