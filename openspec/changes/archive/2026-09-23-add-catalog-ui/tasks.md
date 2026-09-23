@@ -56,4 +56,4 @@
       markdown check, SwiftLint, swift-format, and strict OpenSpec validation
 - [x] 6.2 Run the `reviewer` lane against the twelve invariants, M5 specs,
       Dynamic Type behavior, and the four-file screen rule
-- [ ] 6.3 Archive `add-catalog-ui`
+- [x] 6.3 Archive `add-catalog-ui`
