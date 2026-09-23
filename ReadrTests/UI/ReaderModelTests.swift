@@ -206,6 +206,18 @@ struct ReaderModelTests {
         #expect(PageRenderer.firstVisible([]) == nil)
     }
 
+    @Test("Tall pages are cut into drawable strips that cover the whole image")
+    func pageTiles() {
+        let strip = PageTiles.rects(width: 900, height: 16_000)
+        #expect(strip.count == 8)
+        #expect(strip.allSatisfy { $0.height <= CGFloat(PageTiles.maxTileHeight) })
+        #expect(strip.reduce(0) { $0 + $1.height } == 16_000)
+        #expect(strip.last?.maxY == 16_000)
+
+        #expect(PageTiles.rects(width: 1532, height: 1024).count == 1)
+        #expect(PageTiles.rects(width: 0, height: 100).isEmpty)
+    }
+
     @Test("Reaching the end marks the chapter read once")
     func reachingEndMarksRead() async {
         let repository = FakeChapterRepository(chapters: [chapter(1)])

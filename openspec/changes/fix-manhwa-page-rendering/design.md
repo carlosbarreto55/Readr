@@ -1,5 +1,15 @@
 ## Context
 
+**Root cause, found by reproducing in a hosted simulator window:** every page
+row carried `.id(attempt)` for its retry button — `0` in every row. An inner
+`.id` with the same value in every row makes `LazyVStack` treat all rows as one
+view, so only the first page is ever laid out as content; later rows are never
+realized, never load, and any scroll springs back to page 1. Bisection showed
+the containers and modifiers were fine; a nested `.id` alone reproduces it.
+
+The items below were found along the way and are fixed too.
+
+
 `PageRenderer` bound `.scrollPosition(id:)` two-way over a `LazyVStack` of
 `LazyImage`s whose placeholders were a fixed 2:3 box. SwiftUI keeps the bound id
 pinned when content sizes change; each loaded strip changed size by thousands of
@@ -14,6 +24,25 @@ renderer also decoded pages at full resolution and allocated an
 **Non-Goals:** zoom; changing paged mode's presentation.
 
 ## Decisions
+
+### No `.id` inside a lazy row
+
+Retry reloads by changing the image request (cache-bypassing, alternating
+priority), which `LazyImage` observes, instead of changing view identity. A
+hosted layout test scrolls the real renderer and fails if later pages are never
+reached.
+
+### Explicit row heights; tiny visibility threshold
+
+Rows get explicit heights from the measured reader size: the image's aspect
+ratio once known, else one screen. Visibility uses a near-zero threshold, since
+a strip several screens tall never shows more than a small fraction of itself.
+
+### Tall pages drawn as tiles
+
+A loaded page is cut into ≤2048-px strips (sharing the decoded pixels), so no
+single layer approaches the GPU texture limit.
+
 
 ### Observe the position; restore it once
 
@@ -30,7 +59,8 @@ placeholders neither fake a short box nor let a dozen pages start at once.
 
 ### Decode at display width
 
-Each page's request resizes to the container width in pixels, without upscaling,
+Each page's request fits the container width in pixels (aspect-fit into a very
+tall box — the width-only initializer also clamps height), without upscaling,
 and the prefetcher uses the same requests, so prefetched images are cache hits.
 The prefetcher is created once per renderer.
 

@@ -12,7 +12,7 @@ document to pick a renderer and shares everything else.
 | `ReaderModel.swift` | Loads chapters and content, enforces the one-forced-fetch mismatch rule, parses text off the main actor, records progress coarsely and in order, applies preferences |
 | `ReaderState.swift` | Render state, document, actions, and the close effect |
 | `TextRenderer.swift` | Private renderer: text blocks → `AttributedString` per block in a lazy stack; position is the first visible block |
-| `PageRenderer.swift` | Private renderer: vertical or paged image run via NukeUI. Observes (never binds) the scroll position and restores it once; remembers each page's aspect ratio so tall webtoon strips keep their height; decodes at display width with a three-page prefetch; per-page retry |
+| `PageRenderer.swift` | Private renderer: vertical or paged image run via NukeUI. Observes (never binds) the scroll position and restores it once; gives every row an explicit height (aspect ratio once known, else one screen) and never puts an `.id` inside a lazy row; draws tall strips as ≤2048-px tiles; decodes at display width with a three-page prefetch; per-page retry |
 
 The text renderer is native rather than a web view so Dynamic Type, selection,
 and reader themes work — see `architecture.md` §9. The domain still carries HTML;
