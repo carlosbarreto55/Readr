@@ -35,4 +35,4 @@
       `openspec validate --all`
 - [x] 5.2 Review the diff against the twelve invariants and the four-file rule
 - [x] 5.3 Launch the app in the simulator as a smoke test
-- [ ] 5.4 Archive `add-system-search`
+- [x] 5.4 Archive `add-system-search`
