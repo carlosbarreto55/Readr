@@ -11,5 +11,5 @@
 
 - [x] 2.1 Run XcodeGen, build, tests, SwiftLint, swift-format, and
       `openspec validate --all`
-- [ ] 2.2 Install on the device and confirm on a real AsuraScans chapter
-- [ ] 2.3 Archive `fix-manhwa-page-rendering`
+- [x] 2.2 Install on the device and confirm on a real AsuraScans chapter
+- [x] 2.3 Archive `fix-manhwa-page-rendering`
