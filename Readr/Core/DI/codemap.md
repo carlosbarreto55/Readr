@@ -5,7 +5,7 @@ The composition root. Readr uses no DI framework — see `architecture.md` §7.1
 | File | Responsibility |
 | --- | --- |
 | `AppContainer.swift` | Owns `URLSession`, the `HTTPClient`, `SourceRegistry`, the `ModelContainer`, the library and catalog repositories, and the settings store, plus the SwiftUI environment entry that carries it. Built once in `ReadrApp`. |
-| `SourceRegistration.swift` | `liveSources(http:)` — the one place that imports concrete site types. Currently returns nothing; the first plugin registers here. |
+| `SourceRegistration.swift` | `liveSources(http:)` — the one place that imports concrete site types. Registers FreeWebNovel and AsuraScans with the shared client. |
 
 `AppContainer` is `Sendable` rather than main-actor-bound, because background
 tasks reuse the same graph outside the UI lifecycle.

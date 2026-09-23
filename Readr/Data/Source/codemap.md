@@ -10,7 +10,7 @@ for the rules and `architecture.md` §5 for the model.
 | `SourceError.swift` | What a source throws. Carries the site name and URL, and answers `isRetryable` so a surface only offers a retry that could work. |
 | `HTTPClient.swift` | The one outbound request path: a finite timeout, a per-host concurrency bound, and charset-aware decoding. Returns text, not a document, so a future JSON source can use it. |
 | `HostConcurrencyLimiter.swift` | The bound itself, per host, built on continuations. Never `DispatchSemaphore` — see invariant 7. |
-| `HTMLSource.swift` | Shared base for HTML sites. Fetches, parses with SwiftSoup off the main actor, performs the detail merge, and dispatches chapter content on `ContentType`. Site-agnostic. |
+| `HTMLSource.swift` | Shared base for HTML sites. Fetches, parses with SwiftSoup off the main actor, enforces finite latest-feed boundaries, performs the detail merge, and dispatches chapter content on `ContentType`. Site-agnostic. |
 
 Concrete site implementations live in `Readr/Sources/`, not here.
 

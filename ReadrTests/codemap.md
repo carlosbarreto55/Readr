@@ -7,9 +7,10 @@ Swift Testing (`import Testing`), one suite per type under test.
 | `Core/` | `stableHash64` and `computeSourceID` guard rails, the metadata cache, cache keys, and the catalog pager |
 | `Domain/` | Model identity, content shapes, catalog paging values, filters, and the detail merge |
 | `Data/` | `SourceRegistry`, entity keys, mappers, the library repository, settings, store survival, the HTTP client, `HTMLSource`, and the catalog repository |
+| `Sources/` | Fixture-driven tests for FreeWebNovel and AsuraScans |
 | `UI/` | Route identity and per-tab navigation paths |
-| `Support/` | `StubSource` — a `Source` that contacts nothing — and `StubURLProtocol` |
-| `Fixtures/<sitename>/` | Saved HTML captured from real pages, one directory per source |
+| `Support/` | `StubSource`, `StubURLProtocol`, and the bundled fixture loader |
+| `Fixtures/<sitename>/` | Saved real-markup captures or hand-reduced extracts of observed real markup, one directory per source |
 
 Testing approach:
 

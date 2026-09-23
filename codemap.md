@@ -5,16 +5,16 @@ entry points, directory responsibilities, and implementation locations. Use
 `architecture.md` for normative layer rules, contracts, invariants, and
 architectural decisions.
 
-> **Foundation, persistence, and the source runtime.** `Domain/`, `Core/`,
+> **Foundation, persistence, source runtime, and initial plugins.** `Domain/`, `Core/`,
 > `Data/Source/`, `Data/Local/Database/`, `Data/Local/Prefs/`, `Data/Repository/`,
-> `UI/Theme/`, and `UI/Navigation/` are implemented and tested. Every other
+> `Sources/`, `UI/Theme/`, and `UI/Navigation/` are implemented and tested. Every other
 > directory below exists, is documented, and is empty. Each directory's
 > `codemap.md` states what it is *for*; `openspec/specs/` states how it must
 > *behave*.
 >
 > The runtime a site plugin needs now exists — fetching, parsing, caching, paging,
-> and the detail merge — but **no plugin does**. `liveSources()` returns nothing,
-> so nothing in the shipped app reaches any of it yet.
+> and the detail merge — and `liveSources()` registers FreeWebNovel and
+> AsuraScans. No feature screen consumes them until M5.
 
 ## Project Responsibility
 
@@ -55,8 +55,6 @@ remote content.
 | `Readr/Data/Repository/` | Concrete repositories that orchestrate sources and persistence. |
 | `Readr/Data/Source/Source.swift` | The stable plugin protocol implemented by each site. |
 | `Readr/Background/` | `BGTaskScheduler` entry points for refresh and download processing. |
-
-*Only `ReadrApp.swift` exists today. The rest are planned locations.*
 
 ## Architecture Snapshot
 

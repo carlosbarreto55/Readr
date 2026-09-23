@@ -113,6 +113,14 @@ class HTMLSource: Source, @unchecked Sendable {
     var latestSelector: String { popularSelector }
     var latestNextPageSelector: String? { nextPageSelector }
 
+    /// The last page exposed by a finite latest feed, or `nil` when it is
+    /// unbounded/unknown.
+    ///
+    /// This keeps a one-page source from translating every later page into the
+    /// same landing-page request. The final entry point checks the boundary
+    /// before fetching, while the plugin supplies only its site-specific limit.
+    var latestPageLimit: Int? { nil }
+
     /// Extracts a series from a latest-listing row. Sites whose latest layout
     /// differs from their popular layout override this narrow hook.
     func latestSeries(from element: Element) throws -> Series { try series(from: element) }
@@ -177,7 +185,10 @@ class HTMLSource: Source, @unchecked Sendable {
     }
 
     final func latest(page: Int) async throws -> SeriesPage {
-        try await listing(
+        if let latestPageLimit, page > latestPageLimit {
+            return .empty
+        }
+        return try await listing(
             url: latestURL(page: page),
             selector: latestSelector,
             nextPageSelector: latestNextPageSelector,

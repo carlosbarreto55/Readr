@@ -1,9 +1,9 @@
 # Codemap: `Readr/`
 
-> **Foundation, persistence, and the source runtime.** `Core/`, `Domain/`,
+> **Foundation, persistence, the source runtime, and initial plugins.** `Core/`, `Domain/`,
 > `Data/Source/`, `Data/Repository/`, `Data/Local/Database/`, `Data/Local/Prefs/`,
-> `UI/Theme/`, and `UI/Navigation/` hold code. `Data/Local/Filesystem/`,
-> `Data/Local/Search/`, `Sources/`, `Background/`, and every feature directory
+> `Sources/`, `UI/Theme/`, and `UI/Navigation/` hold code. `Data/Local/Filesystem/`,
+> `Data/Local/Search/`, `Background/`, and every feature directory
 > under `UI/` are still empty.
 
 Application source root. Every subdirectory maps to a layer in

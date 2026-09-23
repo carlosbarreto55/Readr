@@ -8,7 +8,9 @@
 /// budget per host rather than each building its own and doubling what a site
 /// sees.
 ///
-/// No plugin exists yet; the first one registers here.
 public func liveSources(http: HTTPClient) -> [any Source] {
-    []
+    [
+        FreeWebNovel(http: http),
+        AsuraScans(http: http)
+    ]
 }

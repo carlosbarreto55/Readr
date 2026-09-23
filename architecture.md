@@ -8,11 +8,12 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation, persistence, and the source runtime.** The rules below are
+> **Status: foundation, persistence, source runtime, and initial plugins.** The rules below are
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
-> implemented. Site plugins, screens, downloads, and Spotlight are not.
+> implemented, along with the FreeWebNovel and AsuraScans plugins. Screens,
+> downloads, and Spotlight are not.
 
 ---
 

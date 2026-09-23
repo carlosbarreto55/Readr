@@ -11,19 +11,19 @@ app doesn't know or care which site it's talking to.
 
 ## Status
 
-**Foundation, persistence, and the source runtime.** The architecture, the
+**Foundation, persistence, source runtime, and initial plugins.** The architecture, the
 capability specs, and the agent infrastructure are written, and what they describe
 is being built beneath them: the framework-free domain vocabulary, the `Source`
 plugin contract, stable source identity, the composition root, the theme, the
 four-tab app shell, the versioned SwiftData store with its library repository and
 settings store, and the runtime a plugin runs on — bounded and timed-out HTTP,
 off-main-actor HTML parsing, an expiring metadata cache, and catalog paging that
-cannot duplicate or double-request. All under test. A saved series survives
-relaunch.
+cannot duplicate or double-request. FreeWebNovel and AsuraScans exercise that
+runtime with fixture-tested novel and manhwa parsing. All under test. A saved
+series survives relaunch.
 
-What remains unbuilt is everything a reader would recognise as the app. There is
-still no site plugin — `liveSources()` returns nothing — and no screen, no reader,
-and no downloads.
+What remains unbuilt is the visible product: there is no real screen, reader,
+download flow, or Spotlight integration yet.
 
 ---
 

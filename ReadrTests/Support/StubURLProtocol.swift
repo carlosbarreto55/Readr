@@ -36,6 +36,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         private var responses: [String: Response] = [:]
         private var requested: [URL] = []
         private var requestedCachePolicies: [URLRequest.CachePolicy] = []
+        private var requestedHeaders: [[String: String]] = []
         private var inFlight = 0
         private var peak = 0
 
@@ -57,6 +58,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
                     requested.append(url)
                 }
                 requestedCachePolicies.append(request.cachePolicy)
+                requestedHeaders.append(request.allHTTPHeaderFields ?? [:])
             }
         }
 
@@ -66,6 +68,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
         var cachePolicies: [URLRequest.CachePolicy] {
             lock.withLock { requestedCachePolicies }
+        }
+
+        /// The headers sent with each recorded request, in request order.
+        var headers: [[String: String]] {
+            lock.withLock { requestedHeaders }
         }
 
         func requestCount(for url: URL) -> Int {
