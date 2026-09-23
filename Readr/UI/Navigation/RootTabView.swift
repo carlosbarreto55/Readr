@@ -1,3 +1,4 @@
+import CoreSpotlight
 import SwiftUI
 
 /// The app shell: four top-level destinations, each owning its own navigation
@@ -63,6 +64,26 @@ struct RootTabView: View {
         .environment(navigation)
         .fullScreenCover(item: $navigation.presentedReader) { route in
             ReaderScreen(route: route)
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            guard let container,
+                let identifier = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String
+            else { return }
+            let systemSearch = container.systemSearch
+            Task {
+                navigation.open(await systemSearch.resolve(activityIdentifier: identifier))
+            }
+        }
+        .alert(
+            navigation.notice?.title ?? "",
+            isPresented: Binding(
+                get: { navigation.notice != nil },
+                set: { if !$0 { navigation.notice = nil } }),
+            presenting: navigation.notice
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { notice in
+            Text(notice.message)
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
             guard phase == .active else { return }

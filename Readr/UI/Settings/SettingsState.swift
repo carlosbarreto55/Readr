@@ -7,6 +7,7 @@ struct SettingsState {
     var isResetConfirmationPresented = false
     var storageBytes: Int64 = 0
     var isDeleteDownloadsConfirmationPresented = false
+    var isRebuildingSearchIndex = false
 
     var storageLabel: String {
         ByteCountFormatter.string(fromByteCount: storageBytes, countStyle: .file)
@@ -25,4 +26,5 @@ enum SettingsAction: Sendable, Equatable {
     case requestDeleteDownloads
     case cancelDeleteDownloads
     case confirmDeleteDownloads
+    case rebuildSearchIndex
 }

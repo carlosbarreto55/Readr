@@ -1,7 +1,6 @@
 # Codemap: `Readr/`
 
-> **Foundation through downloads.** Every directory holds code except
-> `Data/Local/Search/`, which Spotlight indexing fills in M9.
+> **All nine milestones.** Every directory holds code.
 
 Application source root. Every subdirectory maps to a layer in
 `architecture.md` §3.

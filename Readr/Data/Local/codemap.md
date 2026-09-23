@@ -1,7 +1,6 @@
 # Codemap: `Data/Local/`
 
-> **`Database/`, `Filesystem/`, and `Prefs/` implemented.** `Search/` is still
-> empty — Spotlight indexing has not been built.
+> **All four implemented.**
 
 Local persistence, split by concern — see `architecture.md` §6.
 

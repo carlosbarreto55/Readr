@@ -32,6 +32,8 @@ public final class AppContainer: Sendable {
     public let chapters: any ChapterRepository
     /// The download queue and stored payloads.
     public let downloads: any DownloadRepository
+    /// The library as system search sees it.
+    public let systemSearch: any SystemSearchRepository
 
     /// The one outbound request path. Held here so every source shares one
     /// concurrency budget per host; a source that built its own would get a
@@ -45,6 +47,8 @@ public final class AppContainer: Sendable {
         sources: SourceRegistry,
         modelContainer: ModelContainer,
         downloadStore: ChapterPayloadStore,
+        indexer: any SeriesIndexing = SpotlightIndexer(),
+        thumbnails: SpotlightThumbnailCache = .live(),
         settings: any SettingsStore = UserDefaultsSettingsStore(),
         http: HTTPClient? = nil
     ) {
@@ -63,13 +67,21 @@ public final class AppContainer: Sendable {
             transport: LiveDownloadTransport(catalog: catalog, http: http))
         self.downloads = downloads
 
+        let store = SwiftDataLibraryRepository(modelContainer: modelContainer)
+        let projection = SpotlightProjection(
+            indexer: indexer,
+            thumbnails: thumbnails,
+            sourceName: { sources[$0]?.name ?? "Readr" },
+            loadCover: { try? await http.data(from: $0, source: "Spotlight") },
+            isSaved: { (try? await store.isSaved($0)) ?? false })
+
         // Removal from the library must also free the series' downloads
-        // (`library-browse-catalog`), so the store is wrapped once, here, and
-        // every caller sees the wrapped one.
-        let library = ObservedLibraryRepository(
-            base: SwiftDataLibraryRepository(modelContainer: modelContainer),
-            observers: [downloads])
+        // (`library-browse-catalog`), and every save or removal must reach the
+        // Spotlight projection (`spotlight-indexable-series`). The store is
+        // wrapped once, here, and every caller sees the wrapped one.
+        let library = ObservedLibraryRepository(base: store, observers: [downloads, projection])
         self.library = library
+        self.systemSearch = DefaultSystemSearchRepository(library: store, projection: projection)
         self.series = DefaultSeriesRepository(library: library, catalog: catalog)
         self.chapters = DefaultChapterRepository(
             library: library, catalog: catalog, downloads: downloads)
@@ -92,6 +104,10 @@ public final class AppContainer: Sendable {
         // (`download-enqueue`).
         let downloads = container.downloads
         Task { await downloads.resume() }
+        // The index is a projection: rebuilt from the library at every launch, so
+        // an index the system discarded, or one that drifted, is corrected.
+        let systemSearch = container.systemSearch
+        Task(priority: .utility) { await systemSearch.rebuildIndex() }
         // An unstructured task continues for the process lifetime even though
         // its handle is not retained. It captures only the catalog repository,
         // so it cannot keep the composition root alive beyond the app itself.
@@ -128,6 +144,10 @@ public final class AppContainer: Sendable {
             downloadStore: try ChapterPayloadStore(
                 root: FileManager.default.temporaryDirectory
                     .appending(path: "readr-downloads-\(UUID().uuidString)")),
+            indexer: DetachedIndexer(),
+            thumbnails: SpotlightThumbnailCache(
+                directory: FileManager.default.temporaryDirectory
+                    .appending(path: "readr-thumbnails-\(UUID().uuidString)")),
             settings: InMemorySettingsStore()
         )
     }
@@ -151,4 +171,12 @@ extension EnvironmentValues {
     /// nothing — the silent-empty failure `architecture.md` §4.1 warns about,
     /// reached by a different route. Absent is legible; empty is not.
     @Entry public var appContainer: AppContainer?
+}
+
+/// The index an in-memory container uses: none. Previews and tests must not
+/// write into the system's Spotlight index.
+private struct DetachedIndexer: SeriesIndexing {
+    func index(_ items: [SpotlightAttributes.Item]) async {}
+    func remove(_ ids: [SeriesID]) async {}
+    func removeAll() async {}
 }

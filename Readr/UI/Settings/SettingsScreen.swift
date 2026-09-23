@@ -16,6 +16,7 @@ struct SettingsScreen: View {
                             settings: container.settings,
                             catalog: container.catalog,
                             downloads: container.downloads,
+                            systemSearch: container.systemSearch,
                             appVersion: Self.appVersion)
                     }
             } else {

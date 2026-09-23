@@ -16,6 +16,26 @@ struct SettingsContent: View {
                 .disabled(state.storageBytes == 0)
             }
             Section {
+                Button {
+                    onAction(.rebuildSearchIndex)
+                } label: {
+                    HStack {
+                        Text("Rebuild Spotlight Index")
+                        if state.isRebuildingSearchIndex {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(state.isRebuildingSearchIndex)
+            } header: {
+                Text("System Search")
+            } footer: {
+                Text(
+                    "Spotlight finds the series in your library. The index is rebuilt "
+                        + "from your library at every launch.")
+            }
+            Section {
                 Button("Reset Settings", role: .destructive) { onAction(.requestReset) }
             } footer: {
                 Text(

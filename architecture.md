@@ -8,14 +8,14 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation through downloads.** The rules below are
+> **Status: all nine milestones implemented.** The rules below are
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
 > implemented, along with the FreeWebNovel and AsuraScans plugins and the
 > repository-backed Library, Browse, Series, Reader, Downloads, and Settings
-> screens, download storage, and both background task entry points. Spotlight is
-> not.
+> screens, download storage, both background task entry points, and the Spotlight
+> projection.
 
 ---
 
@@ -421,6 +421,10 @@ menus for per-item operations, `ContentUnavailableView` for empty states,
 **System search.** Core Spotlight indexes library series via `CSSearchableIndex`,
 replacing ReaderParser's Samsung Search integration. Both are the same idea — make
 the library findable from the OS — and the requirements port almost unchanged.
+The index is a projection: a library observer writes it on every save and
+removal, it is rebuilt from the library at every launch, and a result is checked
+against the library before it opens. In-app Library search matches locally
+rather than querying the index, so it is unaffected when the index is lost.
 
 **Dynamic Type is honored throughout**, including in the reader. Fixed point sizes
 are a bug in a reading app.

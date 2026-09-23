@@ -11,6 +11,8 @@ the filesystem, and Spotlight — and they are the only layer permitted to.
 | `DefaultDownloadRepository.swift` | `DownloadRepository`: a `ModelActor` owning the persisted queue, the single drain loop, the active download, and the snapshot broadcast. Observes library removal to delete a series' downloads. |
 | `ChapterDownloader.swift` | Fetches one chapter through the transport and stores it complete via the payload store, reporting page progress. Runs detached from the queue's actor. |
 | `DownloadTransport.swift` | The download network seam: content through the catalog, page bytes through the shared `HTTPClient`. |
+| `SpotlightProjection.swift` | Library observer that keeps the Spotlight index in step: index on save, delete on removal, rebuild on request; thumbnails fetched afterwards and never for a series removed meanwhile. |
+| `DefaultSystemSearchRepository.swift` | `SystemSearchRepository`: resolves a Spotlight result against the library (removing stale entries) and rebuilds the index from it. |
 | `ObservedLibraryRepository.swift` | Forwarding `LibraryRepository` decorator that tells `LibraryChangeObserver`s about successful saves and removals. The composition root wraps the store with it. |
 | `DefaultSeriesRepository.swift` | `SeriesRepository` over the library and catalog contracts: detail refresh, chapter merge, and the library refresh with blank-title repair. An actor, so two library refreshes never run at once. |
 

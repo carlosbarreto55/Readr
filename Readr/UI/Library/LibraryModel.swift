@@ -81,6 +81,9 @@ final class LibraryModel {
             settings.set(.all, for: Self.contentFilterKey)
             settings.set("", for: Self.sourceIDKey)
             rebuildVisibleItems()
+        case .searchTextChanged(let query):
+            state.searchText = query
+            rebuildVisibleItems()
         case .openSeries(let id):
             effectContinuation.yield(.openSeries(id))
         case .removeSeries(let id), .retryRemoval(let id):
@@ -174,7 +177,12 @@ final class LibraryModel {
             state.contentFilter.includes(item.series.contentType)
                 && (state.selectedSourceID.map { $0 == item.series.sourceID } ?? true)
         }
-        let sorted = filtered.sorted(by: itemPrecedes)
+        // Search runs over what the filters left, locally: no network, and the
+        // same result offline (`library-search-via-spotlight`).
+        let searched = filtered.filter {
+            LibrarySearch.matches(state.searchText, title: $0.series.displayTitle)
+        }
+        let sorted = searched.sorted(by: itemPrecedes)
 
         state.items = sorted.map { item in
             SeriesCardItem(
@@ -184,7 +192,14 @@ final class LibraryModel {
                 isSaved: true
             )
         }
-        state.phase = state.items.isEmpty ? .filteredEmpty : .populated
+        if !state.items.isEmpty {
+            state.phase = .populated
+        } else if filtered.isEmpty {
+            state.phase = .filteredEmpty
+        } else {
+            state.phase = .searchEmpty(
+                query: state.searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
     }
 
     private func itemPrecedes(_ lhs: LibraryItem, _ rhs: LibraryItem) -> Bool {

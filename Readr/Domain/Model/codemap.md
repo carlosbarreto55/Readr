@@ -18,13 +18,8 @@ annotations, no framework imports beyond Foundation.
 | `SourceInfo` | struct — source metadata exposed to the UI |
 | `Filter` / `FilterList` | catalog filtering primitives |
 | `Download` | `DownloadEntry`, `DownloadState`, `DownloadProgress` (fraction or indeterminate), `DownloadQueueSnapshot` |
+| `LibrarySearch` | enum namespace — the case- and diacritic-insensitive Library search match |
 | `ReaderPreferences` | struct — reader theme, font, text scale, page layout; plus `ReaderSettingKeys` and `SettingsStore` accessors |
-
-Planned, each arriving with the change that needs it:
-
-| Type | Shape |
-| --- | --- |
-| `LibrarySearchResult` | a Spotlight or in-app search hit |
 
 `Series` and `Chapter` define equality and hashing on `(sourceID, url)` alone, so
 refreshed metadata never changes which record a value refers to.

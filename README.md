@@ -11,8 +11,7 @@ app doesn't know or care which site it's talking to.
 
 ## Status
 
-**Library, Browse, Series detail, the Reader, Downloads, and Settings are now
-functional.** The framework-free
+**Every planned feature is functional.** The framework-free
 domain, stable source identity, composition root, versioned SwiftData library,
 preferences, bounded source runtime, cache, and pager are implemented and tested.
 FreeWebNovel and AsuraScans provide fixture-tested novel and manhwa catalogs.
@@ -25,9 +24,9 @@ one Reader — native text for novels, a vertical or paged image run for manhwa 
 that records and restores reading progress and follows the reader's theme, font,
 and text size. Chapters queue for offline reading, download one at a time,
 survive relaunch, and read without a network; the library refreshes in the
-background when iOS allows it.
-
-Spotlight integration remains to be built.
+background when iOS allows it. Saved series appear in Spotlight and open straight
+to their detail screen, and the Library searches its titles offline, ignoring
+case and accents.
 
 ---
 
@@ -50,7 +49,7 @@ is architectural rather than cosmetic.
 
 ---
 
-## What it will do
+## What it does
 
 - Browse and search across configured sites (popular, latest, full-text search).
 - Add series to a local library.

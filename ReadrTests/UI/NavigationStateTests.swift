@@ -63,4 +63,46 @@ struct NavigationStateTests {
         navigation.browsePath.append(.series(seriesID))
         #expect(navigation.browsePath == [.catalog(sourceID: 7), .series(seriesID)])
     }
+
+    @Test("A Spotlight result for a saved series opens it on Library, over the Reader")
+    func openSeriesResult() {
+        let navigation = NavigationState()
+        navigation.selectedTab = .browse
+        navigation.browsePath.append(.catalog(sourceID: 1))
+        navigation.presentedReader = ReaderRoute(
+            sourceID: 1, seriesURL: seriesID.url, chapterURL: seriesID.url.appending(path: "1"),
+            contentType: .novel)
+        let revision = navigation.libraryRevision
+
+        navigation.open(.series(seriesID))
+
+        #expect(navigation.selectedTab == .library)
+        #expect(navigation.libraryPath == [.series(seriesID)])
+        #expect(navigation.presentedReader == nil)
+        #expect(navigation.libraryRevision == revision + 1)
+        // Other tabs keep their paths.
+        #expect(navigation.browsePath == [.catalog(sourceID: 1)])
+        #expect(navigation.notice == nil)
+    }
+
+    @Test("A result for a series no longer saved explains, and navigates nowhere")
+    func openStaleResult() {
+        let navigation = NavigationState()
+        navigation.selectedTab = .settings
+
+        navigation.open(.noLongerSaved)
+
+        #expect(navigation.notice == .seriesNoLongerSaved)
+        #expect(navigation.selectedTab == .settings)
+        #expect(navigation.libraryPath.isEmpty)
+    }
+
+    @Test("An unrecognized result simply opens the app")
+    func openUnrecognized() {
+        let navigation = NavigationState()
+        navigation.open(.unrecognized)
+        #expect(navigation.notice == nil)
+        #expect(navigation.selectedTab == .library)
+        #expect(navigation.libraryPath.isEmpty)
+    }
 }

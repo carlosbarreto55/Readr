@@ -50,6 +50,8 @@ enum LibraryPhase: Sendable, Equatable {
     case empty
     case error(message: String)
     case filteredEmpty
+    /// Saved series exist, but none matches the search.
+    case searchEmpty(query: String)
     case populated
 }
 
@@ -67,6 +69,7 @@ struct LibraryState {
     var sourceOptions: [LibrarySourceOption] = []
     var sort: LibrarySort = .dateAdded
     var removalFailure: LibraryRemovalFailure?
+    var searchText = ""
 
     var hasActiveFilters: Bool {
         contentFilter != .all || selectedSourceID != nil
@@ -80,6 +83,7 @@ enum LibraryAction: Sendable {
     case selectSource(Int64?)
     case selectSort(LibrarySort)
     case clearFilters
+    case searchTextChanged(String)
     case openSeries(SeriesID)
     case removeSeries(SeriesID)
     case retryRemoval(SeriesID)

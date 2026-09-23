@@ -12,11 +12,12 @@ struct SettingsModelTests {
 
     private func make(
         _ settings: InMemorySettingsStore,
-        downloads: FakeDownloadRepository = FakeDownloadRepository()
+        downloads: FakeDownloadRepository = FakeDownloadRepository(),
+        systemSearch: RecordingSystemSearchRepository = RecordingSystemSearchRepository()
     ) -> SettingsModel {
         SettingsModel(
             settings: settings, catalog: ScriptedCatalogRepository(sources: [source]),
-            downloads: downloads, appVersion: "1.0 (1)")
+            downloads: downloads, systemSearch: systemSearch, appVersion: "1.0 (1)")
     }
 
     @Test("Reader appearance changes persist through the settings store")
@@ -83,5 +84,16 @@ struct SettingsModelTests {
 
         try await waitUntil { model.state.storageBytes == 0 }
         #expect(await downloads.deleteAllCalls == 1)
+    }
+
+    @Test("Rebuild Spotlight Index rebuilds from the library")
+    func rebuildIndex() async {
+        let systemSearch = RecordingSystemSearchRepository()
+        let model = make(InMemorySettingsStore(), systemSearch: systemSearch)
+
+        await model.rebuildSearchIndex()
+
+        #expect(await systemSearch.rebuildCalls == 1)
+        #expect(!model.state.isRebuildingSearchIndex)
     }
 }

@@ -36,6 +36,8 @@ struct LibraryContent: View {
                     Button("Clear Filters") { onAction(.clearFilters) }
                         .buttonStyle(.borderedProminent)
                 }
+            case .searchEmpty(let query):
+                ContentUnavailableView.search(text: query)
             case .populated:
                 SeriesCatalogGrid(
                     items: state.items,
@@ -47,6 +49,12 @@ struct LibraryContent: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .refreshable { await onRefresh() }
+        .searchable(
+            text: Binding(
+                get: { state.searchText },
+                set: { onAction(.searchTextChanged($0)) }),
+            prompt: "Search Library"
+        )
         .background(Palette.background)
         .navigationTitle("Library")
         .toolbar { filterToolbar }

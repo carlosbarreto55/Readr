@@ -36,6 +36,27 @@ public final class NavigationState {
         libraryRevision += 1
     }
 
+    /// Something the shell tells the reader outside any screen.
+    public var notice: ShellNotice?
+
+    /// Goes where a system search result points.
+    ///
+    /// A saved series opens on the Library tab, over anything open — the Reader
+    /// included. A series no longer saved leaves navigation alone and explains.
+    /// Anything unrecognized is ignored: the app simply opens.
+    public func open(_ resolution: SystemSearchResolution) {
+        switch resolution {
+        case .series(let id):
+            presentedReader = nil
+            selectedTab = .library
+            libraryPath = [.series(id)]
+        case .noLongerSaved:
+            notice = .seriesNoLongerSaved
+        case .unrecognized:
+            break
+        }
+    }
+
     public init() {}
 
     /// How deep a tab has navigated. `0` is its root.
@@ -55,6 +76,26 @@ public final class NavigationState {
         case .browse: browsePath.removeAll()
         case .downloads: downloadsPath.removeAll()
         case .settings: settingsPath.removeAll()
+        }
+    }
+}
+
+/// A message the shell shows over every tab.
+public enum ShellNotice: Sendable, Equatable {
+    /// A Spotlight result named a series that has since been removed.
+    case seriesNoLongerSaved
+
+    public var title: String {
+        switch self {
+        case .seriesNoLongerSaved: "Series Not in Library"
+        }
+    }
+
+    public var message: String {
+        switch self {
+        case .seriesNoLongerSaved:
+            "This series was removed from your library, so it can’t be opened from search. "
+                + "It won’t appear in search results again."
         }
     }
 }

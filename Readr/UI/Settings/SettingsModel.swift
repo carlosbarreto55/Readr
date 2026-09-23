@@ -7,6 +7,7 @@ final class SettingsModel {
     private let settings: any SettingsStore
     private let catalog: any CatalogRepository
     private let downloads: any DownloadRepository
+    private let systemSearch: any SystemSearchRepository
 
     private(set) var state: SettingsState
 
@@ -14,11 +15,13 @@ final class SettingsModel {
         settings: any SettingsStore,
         catalog: any CatalogRepository,
         downloads: any DownloadRepository,
+        systemSearch: any SystemSearchRepository,
         appVersion: String
     ) {
         self.settings = settings
         self.catalog = catalog
         self.downloads = downloads
+        self.systemSearch = systemSearch
         state = SettingsState(preferences: settings.readerPreferences, appVersion: appVersion)
     }
 
@@ -51,6 +54,8 @@ final class SettingsModel {
             state.preferences = settings.readerPreferences
         case .requestDeleteDownloads, .cancelDeleteDownloads, .confirmDeleteDownloads:
             handleDownloads(action)
+        case .rebuildSearchIndex:
+            Task { await rebuildSearchIndex() }
         }
     }
 
@@ -59,6 +64,14 @@ final class SettingsModel {
         if action == .confirmDeleteDownloads {
             Task { await deleteDownloads() }
         }
+    }
+
+    /// Replaces the Spotlight index with one derived from the library.
+    func rebuildSearchIndex() async {
+        guard !state.isRebuildingSearchIndex else { return }
+        state.isRebuildingSearchIndex = true
+        await systemSearch.rebuildIndex()
+        state.isRebuildingSearchIndex = false
     }
 
     func loadStorage() async {

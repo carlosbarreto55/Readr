@@ -3,7 +3,7 @@
 | File | Responsibility |
 | --- | --- |
 | `Routes.swift` | `AppTab`, one route enum per tab, and `ReaderRoute`. |
-| `NavigationState.swift` | Selected tab, one path per tab, the presented `ReaderRoute`, and a library revision bumped when a refresh or reading changed stored state. |
+| `NavigationState.swift` | Selected tab, one path per tab, the presented `ReaderRoute`, a library revision bumped when a refresh or reading changed stored state, and `open(_:)` for Spotlight results plus the shell's notice. |
 | `RootTabView.swift` | Root `TabView`: the four real tab roots, series destinations on every tab, the Reader's full-screen cover, one `NavigationStack` per tab, and the throttled library refresh on app activation. |
 
 Each tab has its own route type rather than sharing one app-wide enum; a shared
@@ -22,3 +22,8 @@ those into typed path mutations or presentations.
 On `scenePhase == .active`, at most once per 15 minutes (`RefreshThrottle`), the
 shell runs the library refresh — the foreground guarantee `architecture.md` §8
 relies on.
+
+Spotlight results arrive as `CSSearchableItemActionType` activities.
+`RootTabView` resolves them through the system-search repository and
+`NavigationState.open(_:)` acts: a saved series opens on Library over anything
+presented; a removed one shows a notice and navigates nowhere.

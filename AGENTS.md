@@ -11,15 +11,13 @@ Use this file for repo-specific rules and routing only.
 - Read `codemap.md` for repository structure, entry points, and directory maps.
 - Read a folder's `codemap.md` for local implementation details inside that area.
 
-> **Foundation through downloads is in place.** The domain vocabulary, the
-> `Source` contract, `computeSourceID`, the composition root, the theme, the
-> four-tab app shell, schema v3 with its migration plan, the library, catalog,
-> series, chapter, and download repositories, the payload store, the settings
-> store, the source runtime, and both background task entry points all exist and
-> are tested. `liveSources()` registers FreeWebNovel and AsuraScans. Every tab and
-> destination is a real repository-backed screen. Spotlight remains; nothing is
-> indexed yet. The specs in `openspec/specs/` define what goes in
-> `Data/Local/Search/`, the one directory still empty.
+> **All nine milestones are in place.** The domain vocabulary, the `Source`
+> contract, `computeSourceID`, the composition root, the four-tab app shell,
+> schema v3 with its migration plan, the library, catalog, series, chapter,
+> download, and system-search repositories, the payload store, the Spotlight
+> projection, the settings store, the source runtime, and both background task
+> entry points exist and are tested. `liveSources()` registers FreeWebNovel and
+> AsuraScans. The specs in `openspec/specs/` define how each capability behaves.
 
 ## Non-negotiables
 
