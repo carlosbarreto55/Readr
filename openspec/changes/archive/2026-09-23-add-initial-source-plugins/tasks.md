@@ -40,4 +40,4 @@
       type escapes `Readr/Sources/`, its tests, or
       `Readr/Core/DI/SourceRegistration.swift`
 - [x] 5.3 Run the `reviewer` lane against the twelve invariants and the M4 spec
-- [ ] 5.4 Archive `add-initial-source-plugins`
+- [x] 5.4 Archive `add-initial-source-plugins`
