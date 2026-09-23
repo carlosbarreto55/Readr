@@ -31,6 +31,32 @@ struct SeriesContent: View {
         .background(Palette.background)
         .navigationTitle(state.series?.displayTitle ?? "Series")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if !state.chapters.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) { downloadMenu }
+            }
+        }
+    }
+
+    private var downloadMenu: some View {
+        Menu {
+            Button(
+                "Download All (\(state.undownloadedChapters.count))",
+                systemImage: "arrow.down.circle"
+            ) {
+                onAction(.downloadAll)
+            }
+            .disabled(state.undownloadedChapters.isEmpty)
+            Button(
+                "Download Unread (\(state.undownloadedUnreadChapters.count))",
+                systemImage: "arrow.down.circle.dotted"
+            ) {
+                onAction(.downloadUnread)
+            }
+            .disabled(state.undownloadedUnreadChapters.isEmpty)
+        } label: {
+            Label("Download", systemImage: "arrow.down.circle")
+        }
     }
 
     private func loaded(_ series: Series) -> some View {
@@ -50,14 +76,16 @@ struct SeriesContent: View {
             .listRowSeparator(.hidden)
 
             if let failure = state.membershipFailure {
-                SeriesBanner(
+                FailureBanner(
                     message: failure,
                     retry: { onAction(.retryMembership) },
-                    dismiss: { onAction(.dismissMembershipFailure) })
+                    dismiss: { onAction(.dismissMembershipFailure) }
+                )
+                .listRowSeparator(.hidden)
             }
             if let failure = state.refreshFailure, !state.chapters.isEmpty {
-                SeriesBanner(
-                    message: failure, retry: nil, dismiss: { onAction(.dismissRefreshFailure) })
+                FailureBanner(message: failure, dismiss: { onAction(.dismissRefreshFailure) })
+                    .listRowSeparator(.hidden)
             }
 
             chapterSection
@@ -145,7 +173,9 @@ struct SeriesContent: View {
                 emptyChapters
             } else {
                 ForEach(state.displayedChapters) { chapter in
-                    SeriesChapterRow(item: chapter, isSaved: state.isSaved, onAction: onAction)
+                    SeriesChapterRow(
+                        item: chapter, isSaved: state.isSaved,
+                        downloadState: state.downloadStates[chapter.id], onAction: onAction)
                 }
             }
         } header: {
@@ -203,6 +233,7 @@ struct SeriesContent: View {
 private struct SeriesChapterRow: View {
     let item: LibraryChapter
     let isSaved: Bool
+    let downloadState: DownloadState?
     let onAction: (SeriesAction) -> Void
 
     var body: some View {
@@ -227,8 +258,14 @@ private struct SeriesChapterRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(.rect)
+            .overlay(alignment: .trailing) {
+                DownloadStateIndicator(state: downloadState)
+            }
         }
         .buttonStyle(.plain)
+        .swipeActions(edge: .trailing) {
+            downloadButton
+        }
         .swipeActions(edge: .leading) {
             if isSaved {
                 toggleReadButton
@@ -236,6 +273,7 @@ private struct SeriesChapterRow: View {
             }
         }
         .contextMenu {
+            downloadButton
             if isSaved {
                 toggleReadButton
                 Button {
@@ -243,6 +281,31 @@ private struct SeriesChapterRow: View {
                 } label: {
                     Label("Mark Previous as Read", systemImage: "arrow.up.to.line")
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var downloadButton: some View {
+        switch downloadState {
+        case nil, .failed:
+            Button {
+                onAction(.download([item.id]))
+            } label: {
+                Label("Download", systemImage: "arrow.down.circle")
+            }
+            .tint(Palette.accent)
+        case .pending, .downloading:
+            Button(role: .destructive) {
+                onAction(.cancelDownload(item.id))
+            } label: {
+                Label("Cancel Download", systemImage: "xmark.circle")
+            }
+        case .completed:
+            Button(role: .destructive) {
+                onAction(.deleteDownload(item.id))
+            } label: {
+                Label("Delete Download", systemImage: "trash")
             }
         }
     }
@@ -272,109 +335,59 @@ private struct SeriesChapterRow: View {
     }
 }
 
-/// A recoverable failure shown above the chapter list, without replacing it.
-private struct SeriesBanner: View {
-    let message: String
-    let retry: (() -> Void)?
-    let dismiss: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
-            Text(message)
-                .font(Typography.caption)
-                .foregroundStyle(Palette.secondaryLabel)
-            HStack {
-                if let retry {
-                    Button("Try Again", action: retry)
-                        .buttonStyle(.borderedProminent)
-                }
-                Button("Dismiss", action: dismiss)
-                    .buttonStyle(.bordered)
-            }
-        }
-        .padding(Spacing.medium)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.surface)
-        .clipShape(.rect(cornerRadius: Spacing.small))
-        .listRowSeparator(.hidden)
-    }
-}
-
 #Preview("Saved series") {
     let seriesURL = URL(string: "https://example.test/series/road")!
     let chapters = (1...6).map { index in
         LibraryChapter(
             chapter: Chapter(
-                sourceID: 1,
-                seriesURL: seriesURL,
-                url: seriesURL.appending(path: "chapter-\(index)"),
-                name: "Chapter \(index)",
-                number: Double(index),
-                dateUploaded: Date(timeIntervalSince1970: 1_750_000_000 + Double(index) * 86_400)
-            ),
-            isRead: index < 3,
-            readingPosition: index < 3 ? 1 : (index == 3 ? 0.4 : 0),
-            sourceIndex: index - 1,
-            isListedUpstream: index != 2
-        )
+                sourceID: 1, seriesURL: seriesURL, url: seriesURL.appending(path: "c\(index)"),
+                name: "Chapter \(index)", number: Double(index),
+                dateUploaded: Date(timeIntervalSince1970: 1_750_000_000 + Double(index) * 86_400)),
+            isRead: index < 3, readingPosition: index < 3 ? 1 : (index == 3 ? 0.4 : 0),
+            sourceIndex: index - 1, isListedUpstream: index != 2)
     }
     NavigationStack {
         SeriesContent(
             state: SeriesState(
                 phase: .loaded,
                 series: Series(
-                    sourceID: 1,
-                    url: seriesURL,
+                    sourceID: 1, url: seriesURL,
                     title: "The Long Road Home Through a Thousand Worlds",
                     synopsis: "A traveller crosses a thousand worlds looking for home.",
-                    author: "A. Writer",
-                    genres: ["Fantasy", "Adventure"],
-                    status: .ongoing,
-                    contentType: .novel
-                ),
-                sourceName: "Novel Source",
-                chapters: chapters,
-                isSaved: true,
-                refreshFailure: "Couldn’t refresh. The network connection was lost."
-            ),
-            onAction: { _ in },
-            onRefresh: {}
-        )
+                    author: "A. Writer", genres: ["Fantasy", "Adventure"], status: .ongoing,
+                    contentType: .novel),
+                sourceName: "Novel Source", chapters: chapters, isSaved: true,
+                refreshFailure: "Couldn’t refresh. The network connection was lost.",
+                downloadStates: [
+                    chapters[0].id: .completed,
+                    chapters[3].id: .downloading(DownloadProgress(completed: 2, total: 5)),
+                    chapters[4].id: .pending
+                ]),
+            onAction: { _ in }, onRefresh: {})
     }
 }
 
 #Preview("Series states") {
+    let blank = Series(
+        sourceID: 2, url: URL(string: "https://example.test/series/the-swordmaster")!,
+        title: "", contentType: .manhwa)
     TabView {
         NavigationStack {
             SeriesContent(state: SeriesState(), onAction: { _ in }, onRefresh: {})
         }
         .tabItem { Text("Loading") }
-
         NavigationStack {
             SeriesContent(
                 state: SeriesState(
-                    phase: .loaded,
-                    series: Series(
-                        sourceID: 2,
-                        url: URL(string: "https://example.test/series/the-swordmaster")!,
-                        title: "",
-                        contentType: .manhwa
-                    ),
-                    sourceName: "Comic Source",
-                    isRefreshing: true
-                ),
-                onAction: { _ in },
-                onRefresh: {}
-            )
+                    phase: .loaded, series: blank, sourceName: "Comic Source",
+                    isRefreshing: true),
+                onAction: { _ in }, onRefresh: {})
         }
         .tabItem { Text("Blank title") }
-
         NavigationStack {
             SeriesContent(
                 state: SeriesState(phase: .failed(message: "This source is no longer available.")),
-                onAction: { _ in },
-                onRefresh: {}
-            )
+                onAction: { _ in }, onRefresh: {})
         }
         .tabItem { Text("Failed") }
     }

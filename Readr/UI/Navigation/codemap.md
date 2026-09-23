@@ -4,8 +4,7 @@
 | --- | --- |
 | `Routes.swift` | `AppTab`, one route enum per tab, and `ReaderRoute`. |
 | `NavigationState.swift` | Selected tab, one path per tab, the presented `ReaderRoute`, and a library revision bumped when a refresh or reading changed stored state. |
-| `RootTabView.swift` | Root `TabView`: real Library/Browse/Settings roots, series destinations on every tab, the Downloads placeholder, the Reader's full-screen cover, one `NavigationStack` per tab, and the throttled library refresh on app activation. |
-| `PlaceholderDestination.swift` | Stands in for the Downloads and Settings features that have not been built yet. |
+| `RootTabView.swift` | Root `TabView`: the four real tab roots, series destinations on every tab, the Reader's full-screen cover, one `NavigationStack` per tab, and the throttled library refresh on app activation. |
 
 Each tab has its own route type rather than sharing one app-wide enum; a shared
 type would let any destination push any other. Route cases carry `(sourceID, url)`

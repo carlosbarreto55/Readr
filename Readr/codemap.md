@@ -1,10 +1,7 @@
 # Codemap: `Readr/`
 
-> **Foundation through the Reader.** `Core/`, `Domain/`,
-> `Data/Source/`, `Data/Repository/`, `Data/Local/Database/`, `Data/Local/Prefs/`,
-> `Sources/`, `UI/Theme/`, `UI/Navigation/`, `UI/Components/`, `UI/Library/`,
-> `UI/Browse/`, `UI/Series/`, `UI/Reader/`, and `UI/Settings/` hold code. `Data/Local/Filesystem/`, `Data/Local/Search/`,
-> `Background/`, and the later feature directories under `UI/` are still empty.
+> **Foundation through downloads.** Every directory holds code except
+> `Data/Local/Search/`, which Spotlight indexing fills in M9.
 
 Application source root. Every subdirectory maps to a layer in
 `architecture.md` §3.

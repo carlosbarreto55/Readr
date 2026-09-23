@@ -144,6 +144,12 @@ struct ReaderContent: View {
                 Text(state.chapterTitle)
                     .font(Typography.cardTitle)
                     .lineLimit(2)
+                if !state.seriesTitle.isEmpty {
+                    Text(state.seriesTitle)
+                        .font(Typography.caption)
+                        .foregroundStyle(Palette.secondaryLabel)
+                        .lineLimit(1)
+                }
                 if !state.isProgressStored {
                     Text("Progress is saved only for series in your library.")
                         .font(Typography.caption)
@@ -185,6 +191,10 @@ struct ReaderContent: View {
 
             Spacer(minLength: 0)
 
+            ReaderDownloadButton(state: state.currentDownloadState) {
+                onAction(.download)
+            }
+
             Button {
                 onAction(.showSettings(true))
             } label: {
@@ -203,6 +213,23 @@ struct ReaderContent: View {
         .padding(.horizontal, Spacing.screenMargin)
         .padding(.vertical, Spacing.medium)
         .background(.bar)
+    }
+}
+
+/// The chrome's download control: offers the download, then shows its state.
+private struct ReaderDownloadButton: View {
+    let state: DownloadState?
+    let onDownload: () -> Void
+
+    var body: some View {
+        switch state {
+        case nil, .failed:
+            Button(action: onDownload) {
+                Label("Download Chapter", systemImage: "arrow.down.circle")
+            }
+        case .pending, .downloading, .completed:
+            DownloadStateIndicator(state: state)
+        }
     }
 }
 

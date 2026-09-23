@@ -1,7 +1,7 @@
 # Codemap: `Data/Local/`
 
-> **`Database/` and `Prefs/` implemented.** `Filesystem/` and `Search/` are
-> still empty — downloads and Spotlight indexing have not been built.
+> **`Database/`, `Filesystem/`, and `Prefs/` implemented.** `Search/` is still
+> empty — Spotlight indexing has not been built.
 
 Local persistence, split by concern — see `architecture.md` §6.
 

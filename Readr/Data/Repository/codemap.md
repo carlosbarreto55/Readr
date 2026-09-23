@@ -7,7 +7,11 @@ the filesystem, and Spotlight — and they are the only layer permitted to.
 | --- | --- |
 | `SwiftDataLibraryRepository.swift` | `LibraryRepository` over SwiftData: saved items with reader-owned timestamps and their chapter state. |
 | `DefaultCatalogRepository.swift` | `CatalogRepository` over `SourceRegistry`, with the metadata caches in front of it, and a bounded memory of listed series. |
-| `DefaultChapterRepository.swift` | `ChapterRepository` over the library and catalog: stored chapters for saved series, catalog chapters otherwise; content from the source; progress only for saved series. |
+| `DefaultChapterRepository.swift` | `ChapterRepository` over the library, catalog, and downloads: stored chapters for saved series, catalog chapters otherwise; a stored payload before the source unless bypassed; progress only for saved series. |
+| `DefaultDownloadRepository.swift` | `DownloadRepository`: a `ModelActor` owning the persisted queue, the single drain loop, the active download, and the snapshot broadcast. Observes library removal to delete a series' downloads. |
+| `ChapterDownloader.swift` | Fetches one chapter through the transport and stores it complete via the payload store, reporting page progress. Runs detached from the queue's actor. |
+| `DownloadTransport.swift` | The download network seam: content through the catalog, page bytes through the shared `HTTPClient`. |
+| `ObservedLibraryRepository.swift` | Forwarding `LibraryRepository` decorator that tells `LibraryChangeObserver`s about successful saves and removals. The composition root wraps the store with it. |
 | `DefaultSeriesRepository.swift` | `SeriesRepository` over the library and catalog contracts: detail refresh, chapter merge, and the library refresh with blank-title repair. An actor, so two library refreshes never run at once. |
 
 A `@ModelActor`, so every access runs on its own `ModelContext` off the main actor.
@@ -22,9 +26,14 @@ The refresh merge assigns each chapter the position its source listed it at,
 marks chapters the source stopped listing, rejects an empty list as a failed
 refresh, and rolls the context back if anything throws.
 
-Still outstanding: `library-browse-catalog` also requires removal to delete the
-series' downloaded payloads. There is no download storage yet; that is wired into
-`remove(_:)` when downloads are built.
+Removal also deletes the series' downloaded payloads, as
+`library-browse-catalog` requires: `ObservedLibraryRepository` notifies the
+download repository after the store's removal succeeds.
+
+The download queue drains one chapter at a time in enqueue order because there is
+one loop. At launch, and from the processing task, `resume()` returns any entry
+left downloading to pending. Snapshots are pushed to every observer on every
+change; storage usage is recomputed from disk after anything that changes it.
 
 `DefaultCatalogRepository` is where the decision *whether to fetch* lives —
 orchestration, per `architecture.md` §8, so it belongs to a repository rather than

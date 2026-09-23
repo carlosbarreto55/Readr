@@ -22,6 +22,10 @@ Reader chrome: tap to toggle, `.statusBarHidden`,
 `.persistentSystemOverlays(.hidden)`. A strip along the leading edge absorbs
 touches and turns a rightward drag into back, so paging never begins there.
 
+The bottom bar's download control queues the current chapter and then shows its
+state. Stored chapters are served from disk by the chapter repository, so the
+Reader renders them identically offline.
+
 Progress is a 0–1 fraction (block or page index over the count), written when it
 moves 5%, at the end, on chapter change, and on close. Series outside the library
 read without stored progress, and the top bar says so.

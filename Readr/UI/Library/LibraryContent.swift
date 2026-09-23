@@ -52,7 +52,13 @@ struct LibraryContent: View {
         .toolbar { filterToolbar }
         .safeAreaInset(edge: .top) {
             if let failure = state.removalFailure {
-                removalFailureBanner(failure)
+                FailureBanner(
+                    title: "Couldn’t remove \(failure.title)",
+                    message: failure.message,
+                    retry: { onAction(.retryRemoval(failure.seriesID)) },
+                    dismiss: { onAction(.dismissRemovalFailure) }
+                )
+                .padding(.horizontal, Spacing.screenMargin)
             }
         }
     }
@@ -110,28 +116,6 @@ struct LibraryContent: View {
     private var filterSystemImage: String {
         state.hasActiveFilters
             ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle"
-    }
-
-    private func removalFailureBanner(_ failure: LibraryRemovalFailure) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
-            Text("Couldn’t remove \(failure.title)")
-                .font(Typography.cardTitle)
-            Text(failure.message)
-                .font(Typography.caption)
-                .foregroundStyle(Palette.secondaryLabel)
-
-            HStack {
-                Button("Try Again") { onAction(.retryRemoval(failure.seriesID)) }
-                    .buttonStyle(.borderedProminent)
-                Button("Dismiss") { onAction(.dismissRemovalFailure) }
-                    .buttonStyle(.bordered)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(Spacing.medium)
-        .background(Palette.surface)
-        .clipShape(.rect(cornerRadius: Spacing.small))
-        .padding(.horizontal, Spacing.screenMargin)
     }
 }
 

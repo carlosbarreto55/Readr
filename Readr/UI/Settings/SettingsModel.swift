@@ -6,12 +6,19 @@ import Observation
 final class SettingsModel {
     private let settings: any SettingsStore
     private let catalog: any CatalogRepository
+    private let downloads: any DownloadRepository
 
     private(set) var state: SettingsState
 
-    init(settings: any SettingsStore, catalog: any CatalogRepository, appVersion: String) {
+    init(
+        settings: any SettingsStore,
+        catalog: any CatalogRepository,
+        downloads: any DownloadRepository,
+        appVersion: String
+    ) {
         self.settings = settings
         self.catalog = catalog
+        self.downloads = downloads
         state = SettingsState(preferences: settings.readerPreferences, appVersion: appVersion)
     }
 
@@ -20,7 +27,10 @@ final class SettingsModel {
         case .appeared:
             // Another screen — the Reader — may have changed these since.
             state.preferences = settings.readerPreferences
-            Task { await loadSources() }
+            Task {
+                await loadSources()
+                await loadStorage()
+            }
         case .setTheme(let theme):
             update { $0.theme = theme }
         case .setFontDesign(let design):
@@ -39,7 +49,25 @@ final class SettingsModel {
             // store, which this never touches (`preferences-store`).
             settings.removeAll()
             state.preferences = settings.readerPreferences
+        case .requestDeleteDownloads, .cancelDeleteDownloads, .confirmDeleteDownloads:
+            handleDownloads(action)
         }
+    }
+
+    private func handleDownloads(_ action: SettingsAction) {
+        state.isDeleteDownloadsConfirmationPresented = action == .requestDeleteDownloads
+        if action == .confirmDeleteDownloads {
+            Task { await deleteDownloads() }
+        }
+    }
+
+    func loadStorage() async {
+        state.storageBytes = (try? await downloads.snapshot().storageBytes) ?? state.storageBytes
+    }
+
+    func deleteDownloads() async {
+        try? await downloads.deleteAll()
+        await loadStorage()
     }
 
     func loadSources() async {

@@ -30,16 +30,21 @@ public final class AppContainer: Sendable {
     public let series: any SeriesRepository
     /// What the Reader reads: chapters, content, and progress.
     public let chapters: any ChapterRepository
+    /// The download queue and stored payloads.
+    public let downloads: any DownloadRepository
 
     /// The one outbound request path. Held here so every source shares one
     /// concurrency budget per host; a source that built its own would get a
     /// second full budget and quietly double what the site sees.
     public let http: HTTPClient
 
-    public init(
+    /// Internal rather than public: the payload store is a data-layer type, and
+    /// only `live()` and `inMemory()` build a container.
+    init(
         urlSession: URLSession = .shared,
         sources: SourceRegistry,
         modelContainer: ModelContainer,
+        downloadStore: ChapterPayloadStore,
         settings: any SettingsStore = UserDefaultsSettingsStore(),
         http: HTTPClient? = nil
     ) {
@@ -47,11 +52,27 @@ public final class AppContainer: Sendable {
         self.sources = sources
         self.modelContainer = modelContainer
         self.settings = settings
-        self.library = SwiftDataLibraryRepository(modelContainer: modelContainer)
-        self.http = http ?? HTTPClient(session: urlSession)
-        self.catalog = DefaultCatalogRepository(registry: sources)
+        let http = http ?? HTTPClient(session: urlSession)
+        self.http = http
+        let catalog = DefaultCatalogRepository(registry: sources)
+        self.catalog = catalog
+
+        let downloads = DefaultDownloadRepository(
+            modelContainer: modelContainer,
+            store: downloadStore,
+            transport: LiveDownloadTransport(catalog: catalog, http: http))
+        self.downloads = downloads
+
+        // Removal from the library must also free the series' downloads
+        // (`library-browse-catalog`), so the store is wrapped once, here, and
+        // every caller sees the wrapped one.
+        let library = ObservedLibraryRepository(
+            base: SwiftDataLibraryRepository(modelContainer: modelContainer),
+            observers: [downloads])
+        self.library = library
         self.series = DefaultSeriesRepository(library: library, catalog: catalog)
-        self.chapters = DefaultChapterRepository(library: library, catalog: catalog)
+        self.chapters = DefaultChapterRepository(
+            library: library, catalog: catalog, downloads: downloads)
     }
 
     /// The container the app runs with.
@@ -64,8 +85,13 @@ public final class AppContainer: Sendable {
         let container = AppContainer(
             sources: SourceRegistry(liveSources(http: http)),
             modelContainer: try makeStore(),
+            downloadStore: try ChapterPayloadStore.live(),
             http: http
         )
+        // A download interrupted by the app ending resumes rather than sticking
+        // (`download-enqueue`).
+        let downloads = container.downloads
+        Task { await downloads.resume() }
         // An unstructured task continues for the process lifetime even though
         // its handle is not retained. It captures only the catalog repository,
         // so it cannot keep the composition root alive beyond the app itself.
@@ -99,6 +125,9 @@ public final class AppContainer: Sendable {
         AppContainer(
             sources: sources,
             modelContainer: try makeStore(inMemory: true),
+            downloadStore: try ChapterPayloadStore(
+                root: FileManager.default.temporaryDirectory
+                    .appending(path: "readr-downloads-\(UUID().uuidString)")),
             settings: InMemorySettingsStore()
         )
     }

@@ -24,15 +24,18 @@ struct ChapterRepositoryTests {
         let repository: DefaultChapterRepository
         let library: InMemoryLibraryRepository
         let catalog: ScriptedCatalogRepository
+        let downloads: FakeDownloadRepository
     }
 
     private func make(saved: Bool) -> Fixture {
         let library = InMemoryLibraryRepository(
             items: saved ? [LibraryItem(series: series, dateAdded: .now)] : [])
         let catalog = ScriptedCatalogRepository(sources: [source])
+        let downloads = FakeDownloadRepository()
         return Fixture(
-            repository: DefaultChapterRepository(library: library, catalog: catalog),
-            library: library, catalog: catalog)
+            repository: DefaultChapterRepository(
+                library: library, catalog: catalog, downloads: downloads),
+            library: library, catalog: catalog, downloads: downloads)
     }
 
     @Test("A saved series' chapters come from the library with reader state")
@@ -104,5 +107,39 @@ struct ChapterRepositoryTests {
         #expect(recording == .notInLibrary)
         #expect(await library.progressCalls.isEmpty)
         #expect(await library.saveCalls.isEmpty)
+    }
+
+    @Test("A stored payload is served without a network request")
+    func storedPayloadWins() async throws {
+        let fixture = make(saved: true)
+        let stored = ChapterContent.pages(imageURLs: [URL(fileURLWithPath: "/tmp/page-0001.jpg")])
+        await fixture.downloads.store(stored, for: chapter(1).id)
+
+        let content = try await fixture.repository.content(for: chapter(1), bypassingStored: false)
+
+        #expect(content == stored)
+        #expect(await fixture.catalog.contentCalls.isEmpty)
+    }
+
+    @Test("A forced fetch goes to the source even when a payload is stored")
+    func bypassGoesToSource() async throws {
+        let fixture = make(saved: true)
+        let remote = ChapterContent.pages(imageURLs: [URL(string: "https://example.test/1.jpg")!])
+        await fixture.downloads.store(.pages(imageURLs: []), for: chapter(1).id)
+        await fixture.catalog.setContent([.success(remote)], for: chapter(1).id)
+
+        let content = try await fixture.repository.content(for: chapter(1), bypassingStored: true)
+
+        #expect(content == remote)
+        #expect(await fixture.downloads.storedContentCalls.isEmpty)
+    }
+
+    @Test("The series lookup prefers the library, then the catalog listing")
+    func seriesLookup() async {
+        let saved = make(saved: true)
+        #expect(await saved.repository.series(id, contentType: .manhwa).title == "One")
+
+        let unsaved = make(saved: false)
+        #expect(await unsaved.repository.series(id, contentType: .manhwa).hasBlankTitle)
     }
 }

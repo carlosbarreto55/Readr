@@ -8,6 +8,13 @@ struct SettingsContent: View {
         Form {
             readerSection
             sourcesSection
+            Section("Storage") {
+                LabeledContent("Downloads", value: state.storageLabel)
+                Button("Delete All Downloads", role: .destructive) {
+                    onAction(.requestDeleteDownloads)
+                }
+                .disabled(state.storageBytes == 0)
+            }
             Section {
                 Button("Reset Settings", role: .destructive) { onAction(.requestReset) }
             } footer: {
@@ -31,6 +38,20 @@ struct SettingsContent: View {
             Button("Cancel", role: .cancel) { onAction(.cancelReset) }
         } message: {
             Text("Your library and reading progress are kept.")
+        }
+        .confirmationDialog(
+            "Delete all downloads?",
+            isPresented: Binding(
+                get: { state.isDeleteDownloadsConfirmationPresented },
+                set: { if !$0 { onAction(.cancelDeleteDownloads) } }),
+            titleVisibility: .visible
+        ) {
+            Button("Delete All Downloads", role: .destructive) {
+                onAction(.confirmDeleteDownloads)
+            }
+            Button("Cancel", role: .cancel) { onAction(.cancelDeleteDownloads) }
+        } message: {
+            Text("Stored chapters are removed from this device. Your library is kept.")
         }
     }
 
@@ -102,7 +123,7 @@ struct SettingsContent: View {
                         id: 2, name: "FreeWebNovel", lang: "en",
                         baseURL: URL(string: "https://freewebnovel.com")!, contentType: .novel)
                 ],
-                appVersion: "0.1.0 (1)"),
+                appVersion: "0.1.0 (1)", storageBytes: 48_000_000),
             onAction: { _ in })
     }
 }

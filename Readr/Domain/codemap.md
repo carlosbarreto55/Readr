@@ -1,6 +1,6 @@
 # Codemap: `Domain/`
 
-> **Models and the first five contracts implemented.** Each remaining contract
+> **Models and six contracts implemented.** Each remaining contract
 > arrives with the change that implements it — a protocol with no caller is a
 > guess about a milestone that has not been designed.
 
@@ -13,6 +13,7 @@ a simulator.
 | `LibraryRepository.swift` | Saved series, reader-owned library timestamps, and chapter state. Domain values in and out. |
 | `SettingsStore.swift` | The reader's settings, plus `SettingKey` and `RawSettingKey`. |
 | `CatalogRepository.swift` | Remote catalog data over sources. Every method takes `refresh`, so a caller states at the call site whether it wants the cache. `knownSeries(_:)` returns the last listing of a series. |
+| `DownloadRepository.swift` | The download queue and stored payloads: enqueue without waiting, a pushed snapshot stream, retry/cancel/delete, stored content, resume, drain. |
 | `ChapterRepository.swift` | What the Reader reads: chapters in reading order, content (with a bypass for the forced re-fetch), and progress, which reports when a series is not in the library. |
 | `SeriesRepository.swift` | A series' detail: stored snapshot, pre-detail seed, source refresh merged into the library, and the library-wide refresh that repairs blank titles. |
 | `Model/` | Immutable `Sendable` models — see its own codemap. |
@@ -22,8 +23,7 @@ a simulator.
 chapters are marked rather than deleted, an empty list throws, and nothing
 partial is committed.
 
-Planned, each arriving with the change that implements it: a download
-repository and a search index.
+Planned, arriving with M9: a search index.
 
 `SettingKey` is named that way rather than `PreferenceKey` because SwiftUI already
 defines a `PreferenceKey` protocol, and a screen should never have to

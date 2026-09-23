@@ -10,10 +10,13 @@ struct SettingsModelTests {
         id: 1, name: "Source", lang: "en", baseURL: URL(string: "https://example.test")!,
         contentType: .novel)
 
-    private func make(_ settings: InMemorySettingsStore) -> SettingsModel {
+    private func make(
+        _ settings: InMemorySettingsStore,
+        downloads: FakeDownloadRepository = FakeDownloadRepository()
+    ) -> SettingsModel {
         SettingsModel(
             settings: settings, catalog: ScriptedCatalogRepository(sources: [source]),
-            appVersion: "1.0 (1)")
+            downloads: downloads, appVersion: "1.0 (1)")
     }
 
     @Test("Reader appearance changes persist through the settings store")
@@ -63,5 +66,22 @@ struct SettingsModelTests {
         #expect(!model.state.isResetConfirmationPresented)
         #expect(settings.readerPreferences == ReaderPreferences())
         #expect(model.state.preferences == ReaderPreferences())
+    }
+
+    @Test("Storage used is shown, and Delete All Downloads asks first and frees it")
+    func storage() async throws {
+        let downloads = FakeDownloadRepository(
+            snapshot: DownloadQueueSnapshot(entries: [], storageBytes: 2_048))
+        let model = make(InMemorySettingsStore(), downloads: downloads)
+
+        await model.loadStorage()
+        #expect(model.state.storageBytes == 2_048)
+
+        model.onAction(.requestDeleteDownloads)
+        #expect(model.state.isDeleteDownloadsConfirmationPresented)
+        model.onAction(.confirmDeleteDownloads)
+
+        try await waitUntil { model.state.storageBytes == 0 }
+        #expect(await downloads.deleteAllCalls == 1)
     }
 }

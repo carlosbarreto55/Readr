@@ -32,7 +32,9 @@ struct ReaderState {
     /// In reading order.
     var chapters: [LibraryChapter] = []
     var currentChapterID: ChapterID
-    var seriesTitle = ""
+    var series: Series?
+    /// Every download state in this series, keyed by chapter.
+    var downloadStates: [ChapterID: DownloadState] = [:]
     var controlsVisible = true
     /// 0 to 1 through the current chapter.
     var progress: Double = 0
@@ -62,6 +64,14 @@ struct ReaderState {
 
     var chapterTitle: String {
         currentChapter?.chapter.name ?? ""
+    }
+
+    var seriesTitle: String {
+        series?.displayTitle ?? ""
+    }
+
+    var currentDownloadState: DownloadState? {
+        downloadStates[currentChapterID]
     }
 
     /// Disabled rather than hidden at the first chapter, per
@@ -98,6 +108,8 @@ enum ReaderAction: Sendable {
     case setFontDesign(ReaderFontDesign)
     case setTextScale(Double)
     case setPageLayout(ReaderPageLayout)
+    /// Queues the current chapter for offline reading.
+    case download
     case close
 }
 

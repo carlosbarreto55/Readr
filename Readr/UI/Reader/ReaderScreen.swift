@@ -30,6 +30,9 @@ struct ReaderScreen: View {
         .task(id: route) {
             await runModel()
         }
+        .task(id: model == nil) {
+            await model?.observeDownloads()
+        }
     }
 
     @MainActor
@@ -41,7 +44,8 @@ struct ReaderScreen: View {
             activeModel = model
         } else {
             let newModel = ReaderModel(
-                route: route, repository: container.chapters, settings: container.settings)
+                route: route, repository: container.chapters, settings: container.settings,
+                downloads: container.downloads)
             model = newModel
             activeModel = newModel
         }

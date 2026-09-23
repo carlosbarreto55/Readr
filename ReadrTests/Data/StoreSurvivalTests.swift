@@ -86,14 +86,58 @@ struct StoreSurvivalTests {
         #expect(try await reopened.savedSeries().isEmpty)
     }
 
-    @Test("The migration plan runs v1 → v2 as one lightweight stage")
+    @Test("The migration plan runs v1 → v2 → v3 as lightweight stages")
     func planIsWired() {
-        #expect(ReadrMigrationPlan.schemas.count == 2)
-        #expect(ReadrMigrationPlan.stages.count == 1)
+        #expect(ReadrMigrationPlan.schemas.count == 3)
+        #expect(ReadrMigrationPlan.stages.count == 2)
         #expect(SchemaV1.versionIdentifier == Schema.Version(1, 0, 0))
         #expect(SchemaV2.versionIdentifier == Schema.Version(2, 0, 0))
+        #expect(SchemaV3.versionIdentifier == Schema.Version(3, 0, 0))
         #expect(SchemaV1.models.count == 2)
         #expect(SchemaV2.models.count == 2)
+        #expect(SchemaV3.models.count == 3)
+    }
+
+    @Test("A v2 store migrates to v3 with its library intact and an empty download queue")
+    func v2StoreMigratesToV3() async throws {
+        let storeURL = temporaryStoreURL()
+        defer { try? FileManager.default.removeItem(at: storeURL) }
+        let id = SeriesID(sourceID: 42, url: seriesURL)
+
+        // Written exactly as v2 wrote it.
+        do {
+            let schema = Schema(versionedSchema: SchemaV2.self)
+            let container = try ModelContainer(
+                for: schema, configurations: ModelConfiguration(schema: schema, url: storeURL))
+            let context = ModelContext(container)
+            let series = SchemaV2.SeriesEntity(
+                sourceID: 42, url: seriesURL.absoluteString, title: "Two",
+                statusRaw: "completed", contentTypeRaw: "novel")
+            let chapter = SchemaV2.ChapterEntity(
+                sourceID: 42, seriesURL: seriesURL.absoluteString,
+                url: chapterURL.absoluteString, name: "Ch. 1", isRead: true,
+                readingPosition: 1, sourceIndex: 3, isListedUpstream: false)
+            chapter.series = series
+            context.insert(series)
+            context.insert(chapter)
+            try context.save()
+        }
+
+        let container = try makeContainer(at: storeURL)
+        let library = SwiftDataLibraryRepository(modelContainer: container)
+        #expect(try await library.series(id)?.title == "Two")
+        let chapter = try #require(try await library.libraryChapters(for: id).first)
+        #expect(chapter.isRead)
+        #expect(chapter.sourceIndex == 3)
+        #expect(!chapter.isListedUpstream)
+
+        let downloads = DefaultDownloadRepository(
+            modelContainer: container,
+            store: try ChapterPayloadStore(
+                root: FileManager.default.temporaryDirectory
+                    .appending(path: "readr-migration-\(UUID().uuidString)")),
+            transport: ScriptedTransport())
+        #expect(try await downloads.snapshot().entries.isEmpty)
     }
 
     @Test("A v1 store migrates to v2 with identity, metadata, and read state intact")

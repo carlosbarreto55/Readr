@@ -1,7 +1,6 @@
 # Codemap: `UI/`
 
-> **Library, Browse, Series, Reader, and Settings implemented.** Downloads remains
-> an explicit tab placeholder.
+> **Every tab and destination is implemented.**
 
 SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 
@@ -12,9 +11,9 @@ SwiftUI presentation. Read `AGENTS.md` in this directory before adding anything.
 | `Browse/` | Source selection and paged popular, latest, and search catalogs |
 | `Series/` | Series detail, chapter list, and read state |
 | `Reader/` | The unified reader |
-| `Downloads/` | Queue and stored chapters |
+| `Downloads/` | Queue, progress, and stored chapters |
 | `Settings/` | Preferences |
-| `Components/` | Shared adaptive series grid, card, and NukeUI cover rendering |
+| `Components/` | Shared series grid, card, cover, download-state indicator, and failure banner |
 | `Theme/` | Colors, reader colors, spacing, typography |
 
 Every screen is four files — `<Name>Screen`, `<Name>Content`, `<Name>Model`,

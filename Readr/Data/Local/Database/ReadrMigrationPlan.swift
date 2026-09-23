@@ -2,9 +2,10 @@ import SwiftData
 
 /// The schema the app currently writes.
 ///
-/// `SeriesEntity` and `ChapterEntity` are aliases for this version's models, so
-/// repositories and mappers name the current models without naming a version.
-typealias CurrentSchema = SchemaV2
+/// `SeriesEntity`, `ChapterEntity`, and `DownloadEntity` are aliases for this
+/// version's models, so repositories and mappers name the current models without
+/// naming a version.
+typealias CurrentSchema = SchemaV3
 
 /// How the store moves between schema versions.
 ///
@@ -16,11 +17,11 @@ typealias CurrentSchema = SchemaV2
 /// mismatch destroys the reader's library and all of their progress.
 enum ReadrMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self, SchemaV2.self]
+        [SchemaV1.self, SchemaV2.self, SchemaV3.self]
     }
 
     static var stages: [MigrationStage] {
-        [v1ToV2]
+        [v1ToV2, v2ToV3]
     }
 
     /// Adds each chapter's source position and whether its source still lists it.
@@ -29,5 +30,11 @@ enum ReadrMigrationPlan: SchemaMigrationPlan {
     static let v1ToV2 = MigrationStage.lightweight(
         fromVersion: SchemaV1.self,
         toVersion: SchemaV2.self
+    )
+
+    /// Adds the download queue. A new entity; no existing row changes.
+    static let v2ToV3 = MigrationStage.lightweight(
+        fromVersion: SchemaV2.self,
+        toVersion: SchemaV3.self
     )
 }

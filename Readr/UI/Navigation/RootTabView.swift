@@ -44,7 +44,7 @@ struct RootTabView: View {
                 AppTab.downloads.title, systemImage: AppTab.downloads.systemImage, value: .downloads
             ) {
                 NavigationStack(path: $navigation.downloadsPath) {
-                    PlaceholderDestination(tab: .downloads)
+                    DownloadsScreen()
                         .navigationDestination(for: DownloadsRoute.self) { route in
                             switch route {
                             case .series(let id):

@@ -15,8 +15,14 @@ struct ReadrApp: App {
     /// reader rather than resolved by deleting their library.
     private let container: Result<AppContainer, any Error>
 
+    @Environment(\.scenePhase) private var scenePhase
+
     init() {
         container = Result { try AppContainer.live() }
+        if case .success(let container) = container {
+            // Before launch completes, or the scheduler refuses the handlers.
+            BackgroundTasks.register(container: container)
+        }
     }
 
     var body: some Scene {
@@ -28,6 +34,10 @@ struct ReadrApp: App {
             case .failure(let error):
                 StoreUnavailableView(error: error)
             }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .background, case .success(let container) = container else { return }
+            Task { await BackgroundTasks.schedule(container: container) }
         }
     }
 }

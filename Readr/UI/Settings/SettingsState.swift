@@ -5,9 +5,15 @@ struct SettingsState {
     var sources: [SourceInfo] = []
     var appVersion = ""
     var isResetConfirmationPresented = false
+    var storageBytes: Int64 = 0
+    var isDeleteDownloadsConfirmationPresented = false
+
+    var storageLabel: String {
+        ByteCountFormatter.string(fromByteCount: storageBytes, countStyle: .file)
+    }
 }
 
-enum SettingsAction: Sendable {
+enum SettingsAction: Sendable, Equatable {
     case appeared
     case setTheme(ReaderTheme)
     case setFontDesign(ReaderFontDesign)
@@ -16,4 +22,7 @@ enum SettingsAction: Sendable {
     case requestReset
     case cancelReset
     case confirmReset
+    case requestDeleteDownloads
+    case cancelDeleteDownloads
+    case confirmDeleteDownloads
 }

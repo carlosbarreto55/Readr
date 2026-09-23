@@ -8,7 +8,9 @@ SwiftData. Read `AGENTS.md` in this directory before changing anything here.
 | `ChapterEntity.swift` | Current `@Model` for a chapter, the reader's progress through it, its source position, and whether the source still lists it. |
 | `SchemaV1.swift` | The first `VersionedSchema`, frozen: exact copies of the models v1 shipped with, so the plan can recognize and migrate a v1 store. |
 | `SchemaV2.swift` | Adds `ChapterEntity.sourceIndex` and `isListedUpstream`. |
-| `ReadrMigrationPlan.swift` | `CurrentSchema`, and the `SchemaMigrationPlan` the container is opened through: v1 → v2 lightweight. |
+| `SchemaV3.swift` | Adds `DownloadEntity` — one row per queued or stored chapter, keyed by chapter identity, with no relationship to series or chapters. Reuses v2's unchanged classes. |
+| `DownloadMapper.swift` | `DownloadEntity` → `DownloadEntry`, folding in the active download's in-memory progress. |
+| `ReadrMigrationPlan.swift` | `CurrentSchema`, and the `SchemaMigrationPlan` the container is opened through: v1 → v2 → v3, each lightweight. |
 | `EntityKey.swift` | Derives both persisted keys from `(sourceID, url)`. |
 | `SeriesMapper.swift` | `SeriesEntity` → `Series` / `LibraryItem`, plus `Series` → entity. Free functions, not methods. |
 | `ChapterMapper.swift` | `ChapterEntity` ↔ `Chapter` / `LibraryChapter`. Free functions, not methods. |
@@ -41,6 +43,6 @@ typealiases to `CurrentSchema`'s, so repositories and mappers never name a
 version. SwiftData's entity name is the unqualified class name, which is why the
 frozen copies keep the names the store on disk already uses.
 
-`StoreSurvivalTests` writes a v1 store through the frozen models, reopens it
-through the plan, and asserts identity, metadata, read state, and the new
-attributes' defaults survived.
+`StoreSurvivalTests` writes a v1 store and a v2 store through their versions'
+models, reopens each through the plan, and asserts identity, metadata, read state,
+and the new attributes' defaults survived.

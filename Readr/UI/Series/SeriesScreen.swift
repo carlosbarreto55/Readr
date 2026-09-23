@@ -29,6 +29,9 @@ struct SeriesScreen: View {
         .task(id: id) {
             await runModel()
         }
+        .task(id: model == nil) {
+            await model?.observeDownloads()
+        }
         .onChange(of: navigation.libraryRevision) {
             // Reading or a refresh elsewhere changed what is stored.
             model?.onAction(.storedStateChanged)
@@ -48,7 +51,8 @@ struct SeriesScreen: View {
                 repository: container.series,
                 library: container.library,
                 catalog: container.catalog,
-                settings: container.settings
+                settings: container.settings,
+                downloads: container.downloads
             )
             model = newModel
             activeModel = newModel

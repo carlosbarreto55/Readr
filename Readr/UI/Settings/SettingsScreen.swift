@@ -15,6 +15,7 @@ struct SettingsScreen: View {
                         model = SettingsModel(
                             settings: container.settings,
                             catalog: container.catalog,
+                            downloads: container.downloads,
                             appVersion: Self.appVersion)
                     }
             } else {

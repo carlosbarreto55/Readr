@@ -12,6 +12,7 @@ final class ReaderModel {
     private let route: ReaderRoute
     private let repository: any ChapterRepository
     private let settings: any SettingsStore
+    private let downloads: any DownloadRepository
     private let effectContinuation: AsyncStream<ReaderEffect>.Continuation
 
     private var hasAppeared = false
@@ -25,10 +26,16 @@ final class ReaderModel {
     private(set) var state: ReaderState
     let effects: AsyncStream<ReaderEffect>
 
-    init(route: ReaderRoute, repository: any ChapterRepository, settings: any SettingsStore) {
+    init(
+        route: ReaderRoute,
+        repository: any ChapterRepository,
+        settings: any SettingsStore,
+        downloads: any DownloadRepository
+    ) {
         self.route = route
         self.repository = repository
         self.settings = settings
+        self.downloads = downloads
 
         let stream = AsyncStream.makeStream(of: ReaderEffect.self)
         effects = stream.stream
@@ -53,6 +60,8 @@ final class ReaderModel {
             reachedEnd()
         case .setTheme, .setFontDesign, .setTextScale, .setPageLayout:
             handlePreference(action)
+        case .download:
+            downloadCurrent()
         }
     }
 
@@ -93,31 +102,18 @@ final class ReaderModel {
         }
     }
 
-    private func handlePreference(_ action: ReaderAction) {
-        switch action {
-        case .setTheme(let theme):
-            state.preferences.theme = theme
-        case .setFontDesign(let design):
-            state.preferences.fontDesign = design
-        case .setTextScale(let scale):
-            state.preferences.textScale = ReaderPreferences.clampedScale(scale)
-        case .setPageLayout(let layout):
-            state.preferences.pageLayout = layout
-        default:
-            return
-        }
-        settings.setReaderPreferences(state.preferences)
-    }
-
     /// Loads the chapter list, then the current chapter.
     func load() async {
+        let seriesID = SeriesID(sourceID: route.sourceID, url: route.seriesURL)
+        if state.series == nil {
+            state.series = await repository.series(seriesID, contentType: route.contentType)
+        }
         if state.chapters.isEmpty {
             // A chapter list that fails to load costs previous/next and the list,
             // not the chapter the reader asked for.
             state.chapters =
-                (try? await repository.chapters(
-                    in: SeriesID(sourceID: route.sourceID, url: route.seriesURL),
-                    contentType: route.contentType)) ?? []
+                (try? await repository.chapters(in: seriesID, contentType: route.contentType))
+                ?? []
         }
         await loadCurrentChapter()
     }
@@ -265,6 +261,49 @@ final class ReaderModel {
             lastReadAt: .now,
             sourceIndex: chapter.sourceIndex,
             isListedUpstream: chapter.isListedUpstream)
+    }
+
+}
+
+// Appearance, downloads, and document building: separate from loading and
+// progress above.
+extension ReaderModel {
+
+    private func handlePreference(_ action: ReaderAction) {
+        switch action {
+        case .setTheme(let theme):
+            state.preferences.theme = theme
+        case .setFontDesign(let design):
+            state.preferences.fontDesign = design
+        case .setTextScale(let scale):
+            state.preferences.textScale = ReaderPreferences.clampedScale(scale)
+        case .setPageLayout(let layout):
+            state.preferences.pageLayout = layout
+        default:
+            return
+        }
+        settings.setReaderPreferences(state.preferences)
+    }
+
+    private func downloadCurrent() {
+        guard let chapter = state.currentChapter?.chapter else { return }
+        let downloads = self.downloads
+        let title = state.seriesTitle
+        let contentType = route.contentType
+        Task {
+            try? await downloads.enqueue(
+                [chapter], seriesTitle: title, contentType: contentType)
+        }
+    }
+
+    /// Follows this series' download state until cancelled; nothing polls.
+    func observeDownloads() async {
+        let seriesID = SeriesID(sourceID: route.sourceID, url: route.seriesURL)
+        for await snapshot in await downloads.updates() {
+            state.downloadStates = Dictionary(
+                snapshot.entries.filter { $0.seriesID == seriesID }.map { ($0.id, $0.state) },
+                uniquingKeysWith: { _, last in last })
+        }
     }
 
     /// Parses text off the main actor; a long chapter is tens of thousands of

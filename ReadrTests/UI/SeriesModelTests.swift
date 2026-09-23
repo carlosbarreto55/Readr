@@ -27,17 +27,21 @@ struct SeriesModelTests {
         let library: InMemoryLibraryRepository
         let catalog: ScriptedCatalogRepository
         let settings: InMemorySettingsStore
+        let downloads: FakeDownloadRepository
     }
 
     private func make(saved: Bool, settings: InMemorySettingsStore = .init()) -> Fixture {
         let library = InMemoryLibraryRepository(
             items: saved ? [LibraryItem(series: series(), dateAdded: .now)] : [])
         let catalog = ScriptedCatalogRepository(sources: [source])
+        let downloads = FakeDownloadRepository()
         let repository = DefaultSeriesRepository(library: library, catalog: catalog)
         let model = SeriesModel(
             id: id, repository: repository, library: library, catalog: catalog,
-            settings: settings)
-        return Fixture(model: model, library: library, catalog: catalog, settings: settings)
+            settings: settings, downloads: downloads)
+        return Fixture(
+            model: model, library: library, catalog: catalog, settings: settings,
+            downloads: downloads)
     }
 
     @Test("A saved series shows its stored chapters, then refreshes them")
@@ -105,7 +109,8 @@ struct SeriesModelTests {
         let catalog = ScriptedCatalogRepository(sources: [])
         let model = SeriesModel(
             id: id, repository: DefaultSeriesRepository(library: library, catalog: catalog),
-            library: library, catalog: catalog, settings: InMemorySettingsStore())
+            library: library, catalog: catalog, settings: InMemorySettingsStore(),
+            downloads: FakeDownloadRepository())
 
         await model.load()
 
@@ -207,5 +212,50 @@ struct SeriesModelTests {
 
         let reopened = make(saved: true, settings: settings)
         #expect(reopened.model.state.chapterOrder == .oldestFirst)
+    }
+
+    @Test("Download All queues only chapters not already stored or queued")
+    func downloadAll() async throws {
+        let fixture = make(saved: true)
+        let chapters = [chapter(1), chapter(2), chapter(3)]
+        try await fixture.library.mergeChapterList(chapters, for: id)
+        await fixture.catalog.setChapters(.success(chapters), for: id)
+        await fixture.model.load()
+        let observation = Task { await fixture.model.observeDownloads() }
+        defer { observation.cancel() }
+
+        await fixture.downloads.publish(
+            DownloadQueueSnapshot(
+                entries: [
+                    DownloadEntry(
+                        chapter: chapter(1), seriesTitle: "One", contentType: .manhwa,
+                        state: .completed, enqueuedAt: .now)
+                ],
+                storageBytes: 1))
+        try await waitUntil { fixture.model.state.downloadStates[chapter(1).id] == .completed }
+
+        fixture.model.onAction(.downloadAll)
+        try await waitUntil { await fixture.downloads.enqueued.count == 1 }
+
+        let request = try #require(await fixture.downloads.enqueued.first)
+        #expect(request.chapters == [chapter(2).id, chapter(3).id])
+        #expect(request.seriesTitle == "One")
+        #expect(request.contentType == .manhwa)
+    }
+
+    @Test("Per-chapter download actions reach the repository")
+    func chapterDownloadActions() async throws {
+        let fixture = make(saved: true)
+        try await fixture.library.mergeChapterList([chapter(1)], for: id)
+        await fixture.catalog.setChapters(.success([chapter(1)]), for: id)
+        await fixture.model.load()
+
+        fixture.model.onAction(.download([chapter(1).id]))
+        fixture.model.onAction(.cancelDownload(chapter(1).id))
+        fixture.model.onAction(.deleteDownload(chapter(1).id))
+
+        try await waitUntil { await fixture.downloads.deleted == [chapter(1).id] }
+        #expect(await fixture.downloads.enqueued.first?.chapters == [chapter(1).id])
+        #expect(await fixture.downloads.cancelled == [chapter(1).id])
     }
 }

@@ -3,7 +3,8 @@
 > **Implemented in M6.**
 
 Series detail: cover, metadata, synopsis, library toggle, continue reading, and
-the chapter list with read state.
+the chapter list with read and download state, per-chapter download actions, and
+Download All / Download Unread.
 
 | File | Responsibility |
 | --- | --- |

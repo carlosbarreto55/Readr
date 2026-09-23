@@ -28,6 +28,10 @@ private actor FakeChapterRepository: ChapterRepository {
 
     func chapters(in series: SeriesID, contentType: ContentType) -> [LibraryChapter] { listed }
 
+    func series(_ id: SeriesID, contentType: ContentType) -> Series {
+        Series(sourceID: id.sourceID, url: id.url, title: "The Series", contentType: contentType)
+    }
+
     func content(for chapter: Chapter, bypassingStored: Bool) throws -> ChapterContent {
         contentCalls.append((chapter.id, bypassingStored))
         guard var queue = contents[chapter.id], let next = queue.first else {
@@ -79,9 +83,11 @@ struct ReaderModelTests {
 
     private func make(
         _ route: ReaderRoute, repository: FakeChapterRepository,
-        settings: InMemorySettingsStore = .init()
+        settings: InMemorySettingsStore = .init(),
+        downloads: FakeDownloadRepository = FakeDownloadRepository()
     ) -> ReaderModel {
-        ReaderModel(route: route, repository: repository, settings: settings)
+        ReaderModel(
+            route: route, repository: repository, settings: settings, downloads: downloads)
     }
 
     @Test("Text content is parsed into blocks and shown")
@@ -246,6 +252,46 @@ struct ReaderModelTests {
         var effects = model.effects.makeAsyncIterator()
         model.onAction(.close)
         #expect(await effects.next() == .close)
+    }
+
+    @Test("The download control queues the current chapter under its series' title")
+    func downloadCurrentChapter() async throws {
+        let repository = FakeChapterRepository(chapters: [chapter(1)])
+        await repository.script([pages(1)], for: chapter(1).id)
+        let downloads = FakeDownloadRepository()
+        let model = make(route(1, .manhwa), repository: repository, downloads: downloads)
+        await model.load()
+        #expect(model.state.seriesTitle == "The Series")
+
+        model.onAction(.download)
+        try await waitUntil { await downloads.enqueued.count == 1 }
+
+        let request = try #require(await downloads.enqueued.first)
+        #expect(request.chapters == [chapter(1).id])
+        #expect(request.seriesTitle == "The Series")
+        #expect(request.contentType == .manhwa)
+    }
+
+    @Test("The download control reflects the current chapter's state")
+    func downloadStateFollows() async throws {
+        let repository = FakeChapterRepository(chapters: [chapter(1)])
+        await repository.script([pages(1)], for: chapter(1).id)
+        let downloads = FakeDownloadRepository()
+        let model = make(route(1, .manhwa), repository: repository, downloads: downloads)
+        await model.load()
+        let observation = Task { await model.observeDownloads() }
+        defer { observation.cancel() }
+
+        await downloads.publish(
+            DownloadQueueSnapshot(
+                entries: [
+                    DownloadEntry(
+                        chapter: chapter(1).chapter, seriesTitle: "The Series",
+                        contentType: .manhwa, state: .completed, enqueuedAt: .now)
+                ],
+                storageBytes: 1))
+
+        try await waitUntil { model.state.currentDownloadState == .completed }
     }
 }
 

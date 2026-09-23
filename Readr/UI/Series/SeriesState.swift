@@ -38,6 +38,8 @@ struct SeriesState {
     var membershipFailure: String?
     var chapterOrder: SeriesChapterOrder = .newestFirst
     var isSynopsisExpanded = false
+    /// Download state per chapter; absent means not downloaded or queued.
+    var downloadStates: [ChapterID: DownloadState] = [:]
 
     /// The chapters in the order the list presents them.
     var displayedChapters: [LibraryChapter] {
@@ -56,6 +58,21 @@ struct SeriesState {
 
     var unreadCount: Int {
         chapters.count(where: { !$0.isRead })
+    }
+
+    /// Chapters neither stored nor queued — what Download All would queue. A
+    /// failed chapter counts, because queueing it again retries it.
+    var undownloadedChapters: [LibraryChapter] {
+        chapters.filter { chapter in
+            switch downloadStates[chapter.id] {
+            case nil, .failed: true
+            case .pending, .downloading, .completed: false
+            }
+        }
+    }
+
+    var undownloadedUnreadChapters: [LibraryChapter] {
+        undownloadedChapters.filter { !$0.isRead }
     }
 
     /// Status, shape, and source, for the header.
@@ -95,6 +112,12 @@ enum SeriesAction: Sendable {
     case markPreviousRead(ChapterID)
     case selectChapterOrder(SeriesChapterOrder)
     case toggleSynopsis
+    case download([ChapterID])
+    /// Queues every chapter not yet stored or queued.
+    case downloadAll
+    case downloadUnread
+    case cancelDownload(ChapterID)
+    case deleteDownload(ChapterID)
     /// Stored state changed elsewhere — the Reader recorded progress — so the
     /// shown read state is re-read from the store. No network.
     case storedStateChanged

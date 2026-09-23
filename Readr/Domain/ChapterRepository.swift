@@ -20,6 +20,10 @@ public protocol ChapterRepository: Sendable {
         in series: SeriesID, contentType: ContentType
     ) async throws -> [LibraryChapter]
 
+    /// The series a chapter belongs to, for labelling: the saved series, else the
+    /// catalog's listing of it, else a bare series whose title is blank.
+    func series(_ id: SeriesID, contentType: ContentType) async -> Series
+
     /// The chapter's content.
     ///
     /// - Parameters:

@@ -8,6 +8,7 @@ struct DefaultChapterRepository: ChapterRepository {
 
     let library: any LibraryRepository
     let catalog: any CatalogRepository
+    let downloads: any DownloadRepository
 
     func chapters(
         in series: SeriesID, contentType: ContentType
@@ -29,8 +30,21 @@ struct DefaultChapterRepository: ChapterRepository {
             LibraryChapter.unsaved(try await catalog.chapters(for: known, refresh: false)))
     }
 
+    func series(_ id: SeriesID, contentType: ContentType) async -> Series {
+        if let saved = try? await library.series(id) {
+            return saved
+        }
+        return await catalog.knownSeries(id)
+            ?? Series(sourceID: id.sourceID, url: id.url, title: "", contentType: contentType)
+    }
+
+    /// A stored payload wins, and no request is made (`download-offline-reader`),
+    /// unless the caller is forcing past it.
     func content(for chapter: Chapter, bypassingStored: Bool) async throws -> ChapterContent {
-        try await catalog.chapterContent(for: chapter)
+        if !bypassingStored, let stored = await downloads.storedContent(for: chapter.id) {
+            return stored
+        }
+        return try await catalog.chapterContent(for: chapter)
     }
 
     func recordProgress(

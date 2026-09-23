@@ -14,6 +14,7 @@ final class SeriesModel {
     private let library: any LibraryRepository
     private let catalog: any CatalogRepository
     private let settings: any SettingsStore
+    private let downloads: any DownloadRepository
     private let effectContinuation: AsyncStream<SeriesEffect>.Continuation
 
     private var hasAppeared = false
@@ -31,13 +32,15 @@ final class SeriesModel {
         repository: any SeriesRepository,
         library: any LibraryRepository,
         catalog: any CatalogRepository,
-        settings: any SettingsStore
+        settings: any SettingsStore,
+        downloads: any DownloadRepository
     ) {
         self.id = id
         self.repository = repository
         self.library = library
         self.catalog = catalog
         self.settings = settings
+        self.downloads = downloads
 
         let stream = AsyncStream.makeStream(of: SeriesEffect.self)
         effects = stream.stream
@@ -64,6 +67,8 @@ final class SeriesModel {
             }
         case .setRead, .markPreviousRead:
             handleReadState(action)
+        case .download, .downloadAll, .downloadUnread, .cancelDownload, .deleteDownload:
+            handleDownloads(action)
         case .selectChapterOrder(let order):
             state.chapterOrder = order
             settings.set(order, for: Self.chapterOrderKey)
@@ -273,5 +278,58 @@ final class SeriesModel {
             return "The source returned no chapters. Your stored chapters are unchanged."
         }
         return "Couldn’t refresh. \(error.localizedDescription)"
+    }
+}
+
+// Downloads: queueing and following state for this series' chapters.
+extension SeriesModel {
+
+    private func handleDownloads(_ action: SeriesAction) {
+        switch action {
+        case .download(let ids):
+            let targets = Set(ids)
+            enqueue(state.chapters.filter { targets.contains($0.id) })
+        case .downloadAll:
+            enqueue(state.undownloadedChapters)
+        case .downloadUnread:
+            enqueue(state.undownloadedUnreadChapters)
+        case .cancelDownload(let chapterID):
+            let downloads = self.downloads
+            Task { try? await downloads.cancel(chapterID) }
+        case .deleteDownload(let chapterID):
+            let downloads = self.downloads
+            Task { try? await downloads.delete([chapterID]) }
+        default:
+            break
+        }
+    }
+
+    /// Follows download state for this series' chapters until cancelled. The
+    /// screen runs it while visible; nothing polls.
+    func observeDownloads() async {
+        for await snapshot in await downloads.updates() {
+            let chapterIDs = Set(state.chapters.map(\.id))
+            let seriesEntries = snapshot.entries.filter {
+                $0.seriesID == id || chapterIDs.contains($0.id)
+            }
+            state.downloadStates = Dictionary(
+                seriesEntries.map { ($0.id, $0.state) }, uniquingKeysWith: { _, last in last })
+        }
+    }
+
+    /// Queues chapters without waiting for any of them to download.
+    private func enqueue(_ chapters: [LibraryChapter]) {
+        guard let series = state.series, !chapters.isEmpty else { return }
+        let downloads = self.downloads
+        let title = series.displayTitle
+        let contentType = series.contentType
+        let toQueue = chapters.map(\.chapter)
+        Task {
+            do {
+                try await downloads.enqueue(toQueue, seriesTitle: title, contentType: contentType)
+            } catch {
+                state.refreshFailure = "Couldn’t queue the download. \(error.localizedDescription)"
+            }
+        }
     }
 }

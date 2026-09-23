@@ -8,13 +8,14 @@ rules, contracts, invariants, and architectural decisions. It does **not** own
 file-by-file repository mapping; use `codemap.md` and per-folder `codemap.md`
 documents for current implementation locations.
 
-> **Status: foundation through the Reader.** The rules below are
+> **Status: foundation through downloads.** The rules below are
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
 > implemented, along with the FreeWebNovel and AsuraScans plugins and the
-> repository-backed Library, Browse, Series, Reader, and Settings screens.
-> Downloads, background work, and Spotlight are not.
+> repository-backed Library, Browse, Series, Reader, Downloads, and Settings
+> screens, download storage, and both background task entry points. Spotlight is
+> not.
 
 ---
 
@@ -248,7 +249,15 @@ for the same reason.
 
 Downloads live under
 `Application Support/Readr/Downloads/<sourceID>/<seriesKey>/<chapterKey>/`, with
-`isExcludedFromBackup` set on the `Downloads` directory.
+`isExcludedFromBackup` set on the `Downloads` directory. A chapter is staged
+beside its final directory and renamed into place only once complete, so a
+chapter directory either holds every asset its manifest names or does not exist;
+a stored chapter is served with local file URLs, never remote ones.
+
+Download state is its own record keyed by chapter identity, deliberately unrelated
+to the library's series and chapter records: a chapter-list refresh cannot reach
+it, and a chapter of a series outside the library can still be downloaded.
+Removing a series from the library deletes its downloads.
 
 Application Support rather than Caches, because the system may evict Caches under
 disk pressure and offline reading is the entire point of the feature. Excluded
@@ -332,10 +341,14 @@ correctness requirement:
   always correct by the time the user looks at it.
 - No feature may assume a background task ran.
 
-Chapter downloads are different and stronger: background `URLSession` transfers do
-survive app suspension and termination, and are handed to the system rather than
-scheduled speculatively. `BGProcessingTask`
-(`dev.opus.readr.process.downloads`) drains queue bookkeeping around them.
+Chapter downloads are durable rather than background-resident. The queue is
+persisted, so it survives termination, and an entry interrupted mid-download
+returns to pending at the next launch. It drains in-process while the app runs,
+and `BGProcessingTask` (`dev.opus.readr.process.downloads`) drains it when the
+system grants time; when that time expires the active chapter returns to pending
+rather than failing. Background `URLSession` transfers, which would continue
+while suspended, are a possible later strengthening, not a current guarantee —
+no feature may assume a download progressed while the app was not running.
 
 ### Nuke over `AsyncImage`
 

@@ -2,7 +2,8 @@
 
 > **Implemented in M7.**
 
-Reader appearance, registered sources, app version, and reset.
+Reader appearance, registered sources, download storage used and Delete All
+Downloads, app version, and reset.
 
 | File | Responsibility |
 | --- | --- |
