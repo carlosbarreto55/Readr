@@ -54,4 +54,4 @@
 - [x] 7.1 Run XcodeGen, build, tests, bundle check, SwiftLint, swift-format, and
       `openspec validate --all`
 - [x] 7.2 Review the diff against the twelve invariants and the four-file rule
-- [ ] 7.3 Archive `add-downloads`
+- [x] 7.3 Archive `add-downloads`
