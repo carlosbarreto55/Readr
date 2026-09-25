@@ -57,17 +57,20 @@ public struct ReaderPreferences: Sendable, Hashable {
     /// Multiplies the Dynamic Type body size; it never replaces it.
     public var textScale: Double
     public var pageLayout: ReaderPageLayout
+    public var mangaPageLayout: ReaderPageLayout
 
     public init(
         theme: ReaderTheme = .system,
         fontDesign: ReaderFontDesign = .system,
         textScale: Double = 1,
-        pageLayout: ReaderPageLayout = .vertical
+        pageLayout: ReaderPageLayout = .vertical,
+        mangaPageLayout: ReaderPageLayout = .paged
     ) {
         self.theme = theme
         self.fontDesign = fontDesign
         self.textScale = Self.clampedScale(textScale)
         self.pageLayout = pageLayout
+        self.mangaPageLayout = mangaPageLayout
     }
 
     public static let textScaleRange: ClosedRange<Double> = 0.8...2.0
@@ -90,6 +93,8 @@ public enum ReaderSettingKeys {
     public static let textScale = SettingKey("readr.reader.textScale", default: 1.0)
     public static let pageLayout = RawSettingKey(
         "readr.reader.pageLayout", default: ReaderPageLayout.vertical)
+    public static let mangaPageLayout = RawSettingKey(
+        "readr.reader.mangaPageLayout", default: ReaderPageLayout.paged)
 }
 
 extension SettingsStore {
@@ -99,7 +104,8 @@ extension SettingsStore {
             theme: value(for: ReaderSettingKeys.theme),
             fontDesign: value(for: ReaderSettingKeys.fontDesign),
             textScale: value(for: ReaderSettingKeys.textScale),
-            pageLayout: value(for: ReaderSettingKeys.pageLayout)
+            pageLayout: value(for: ReaderSettingKeys.pageLayout),
+            mangaPageLayout: value(for: ReaderSettingKeys.mangaPageLayout)
         )
     }
 
@@ -108,5 +114,6 @@ extension SettingsStore {
         set(preferences.fontDesign, for: ReaderSettingKeys.fontDesign)
         set(preferences.textScale, for: ReaderSettingKeys.textScale)
         set(preferences.pageLayout, for: ReaderSettingKeys.pageLayout)
+        set(preferences.mangaPageLayout, for: ReaderSettingKeys.mangaPageLayout)
     }
 }

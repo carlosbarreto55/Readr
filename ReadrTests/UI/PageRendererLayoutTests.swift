@@ -37,7 +37,8 @@ struct PageRendererLayoutTests {
         let window = UIWindow(windowScene: scene)
         window.rootViewController = UIHostingController(
             rootView: PageRenderer(
-                urls: urls, preferences: ReaderPreferences(), initialIndex: 0,
+                urls: urls, preferences: ReaderPreferences(), contentType: .manhwa,
+                initialIndex: 0,
                 onPositionChanged: { positions.reported.append($0) }, onReachedEnd: {},
                 onTap: {}))
         window.makeKeyAndVisible()
@@ -52,5 +53,24 @@ struct PageRendererLayoutTests {
         try await waitUntil { (positions.reported.last ?? 0) >= 4 }
 
         #expect(scroll.contentOffset.y > screen * 5)
+    }
+
+    @Test("Paged manga uses right-to-left scroll layout")
+    func mangaPagesAreRightToLeft() async throws {
+        let scene = try #require(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let urls = (0..<5).map { URL(string: "https://unreachable.invalid/\($0).jpg")! }
+        let window = UIWindow(windowScene: scene)
+        window.rootViewController = UIHostingController(
+            rootView: PageRenderer(
+                urls: urls, preferences: ReaderPreferences(), contentType: .manga,
+                initialIndex: 0, onPositionChanged: { _ in }, onReachedEnd: {}, onTap: {}))
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+
+        try await waitUntil { self.scrollView(in: window)?.contentSize.width ?? 0 > 0 }
+        let scroll = try #require(scrollView(in: window))
+        #expect(scroll.effectiveUserInterfaceLayoutDirection == .rightToLeft)
+        #expect(scroll.contentSize.width >= scroll.bounds.width * 5)
     }
 }

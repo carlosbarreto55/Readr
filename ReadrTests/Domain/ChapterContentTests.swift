@@ -8,7 +8,8 @@ struct ChapterContentTests {
 
     @Test("Text content reports the novel content type")
     func textIsNovel() {
-        #expect(ChapterContent.text(html: "<p>Chapter one.</p>").contentType == .novel)
+        #expect(ChapterContent.text(html: "<p>Chapter one.</p>").matches(.novel))
+        #expect(!ChapterContent.text(html: "<p>Chapter one.</p>").matches(.manga))
     }
 
     @Test("Page content reports the manhwa content type")
@@ -17,7 +18,9 @@ struct ChapterContentTests {
             URL(string: "https://example.test/p/1.jpg")!,
             URL(string: "https://example.test/p/2.jpg")!
         ])
-        #expect(pages.contentType == .manhwa)
+        #expect(pages.matches(.manhwa))
+        #expect(pages.matches(.manga))
+        #expect(!pages.matches(.novel))
     }
 
     @Test("Page order is the reading order it was given")
@@ -32,6 +35,6 @@ struct ChapterContentTests {
 
     @Test("An empty page list is representable without becoming text")
     func emptyPagesStayPages() {
-        #expect(ChapterContent.pages(imageURLs: []).contentType == .manhwa)
+        #expect(ChapterContent.pages(imageURLs: []).matches(.manga))
     }
 }

@@ -69,7 +69,7 @@ struct SourceRegistryTests {
             url: URL(string: "https://example.test/s/1")!,
             name: "One"
         )
-        #expect(try await novel.chapterContent(for: chapter).contentType == .novel)
-        #expect(try await manhwa.chapterContent(for: chapter).contentType == .manhwa)
+        #expect(try await novel.chapterContent(for: chapter).matches(.novel))
+        #expect(try await manhwa.chapterContent(for: chapter).matches(.manhwa))
     }
 }

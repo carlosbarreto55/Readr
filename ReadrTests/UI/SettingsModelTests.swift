@@ -29,12 +29,14 @@ struct SettingsModelTests {
         model.onAction(.setFontDesign(.serif))
         model.onAction(.setTextScale(1.4))
         model.onAction(.setPageLayout(.paged))
+        model.onAction(.setMangaPageLayout(.vertical))
 
         let stored = settings.readerPreferences
         #expect(stored.theme == .dark)
         #expect(stored.fontDesign == .serif)
         #expect(abs(stored.textScale - 1.4) < 0.0001)
         #expect(stored.pageLayout == .paged)
+        #expect(stored.mangaPageLayout == .vertical)
         #expect(model.state.preferences == stored)
     }
 

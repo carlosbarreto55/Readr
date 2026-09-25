@@ -93,6 +93,7 @@ public final class AppContainer: Sendable {
     ///   deleting the store to recover is forbidden, because it destroys the
     ///   reader's library and every chapter of progress they have.
     public static func live() throws -> AppContainer {
+        configureImagePipeline()
         let http = HTTPClient()
         let container = AppContainer(
             sources: SourceRegistry(liveSources(http: http)),

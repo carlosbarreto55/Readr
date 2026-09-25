@@ -82,7 +82,11 @@ struct SeriesState {
         if series.status != .unknown {
             parts.append(series.status.rawValue.capitalized)
         }
-        parts.append(series.contentType == .novel ? "Novel" : "Manhwa")
+        parts.append(
+            series.contentType == .novel
+                ? "Novel"
+                : series.contentType == .manga
+                    ? "Manga" : "Manhwa")
         if !sourceName.isEmpty {
             parts.append(sourceName)
         }

@@ -90,15 +90,21 @@ struct ReaderContent: View {
             PageRenderer(
                 urls: urls,
                 preferences: state.preferences,
+                contentType: state.route.contentType,
                 initialIndex: state.initialIndex,
                 onPositionChanged: { onAction(.positionChanged(index: $0)) },
                 onReachedEnd: { onAction(.reachedEnd) },
                 onTap: { onAction(.toggleControls) }
             )
-            .id("\(state.documentGeneration)-\(state.preferences.pageLayout.rawValue)")
+            .id(pageRendererID)
         case nil:
             EmptyView()
         }
+    }
+
+    private var pageRendererID: String {
+        "\(state.documentGeneration)-\(state.preferences.pageLayout.rawValue)"
+            + "-\(state.preferences.mangaPageLayout.rawValue)"
     }
 
     /// Absorbs touches so no scroll or page turn can begin at the leading edge,
@@ -312,7 +318,10 @@ private struct ReaderSettingsPanel: View {
                     Picker(
                         "Page Layout",
                         selection: Binding(
-                            get: { preferences.pageLayout },
+                            get: {
+                                contentType == .manga
+                                    ? preferences.mangaPageLayout : preferences.pageLayout
+                            },
                             set: { onAction(.setPageLayout($0)) })
                     ) {
                         ForEach(ReaderPageLayout.allCases) { Text($0.title).tag($0) }

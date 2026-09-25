@@ -14,13 +14,15 @@ struct ReaderPreferencesTests {
         #expect(preferences.fontDesign == .system)
         #expect(preferences.textScale == 1)
         #expect(preferences.pageLayout == .vertical)
+        #expect(preferences.mangaPageLayout == .paged)
     }
 
     @Test("Preferences written are read back")
     func roundTrip() {
         let store = InMemorySettingsStore()
         let written = ReaderPreferences(
-            theme: .sepia, fontDesign: .serif, textScale: 1.5, pageLayout: .paged)
+            theme: .sepia, fontDesign: .serif, textScale: 1.5, pageLayout: .paged,
+            mangaPageLayout: .vertical)
         store.setReaderPreferences(written)
         #expect(store.readerPreferences == written)
     }

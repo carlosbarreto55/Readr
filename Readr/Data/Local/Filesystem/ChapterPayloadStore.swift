@@ -143,7 +143,7 @@ struct ChapterPayloadStore: Sendable {
                 return nil
             }
             return .text(html: html)
-        case .manhwa:
+        case .manhwa, .manga:
             return .pages(imageURLs: files)
         }
     }

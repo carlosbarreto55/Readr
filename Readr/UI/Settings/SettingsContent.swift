@@ -108,6 +108,14 @@ struct SettingsContent: View {
             ) {
                 ForEach(ReaderPageLayout.allCases) { Text($0.title).tag($0) }
             }
+            Picker(
+                "Manga Layout",
+                selection: Binding(
+                    get: { state.preferences.mangaPageLayout },
+                    set: { onAction(.setMangaPageLayout($0)) })
+            ) {
+                ForEach(ReaderPageLayout.allCases) { Text($0.title).tag($0) }
+            }
         }
     }
 
@@ -119,7 +127,11 @@ struct SettingsContent: View {
             }
             ForEach(state.sources) { source in
                 LabeledContent {
-                    Text(source.contentType == .novel ? "Novels" : "Manhwa")
+                    Text(
+                        source.contentType == .novel
+                            ? "Novels"
+                            : source.contentType == .manga
+                                ? "Manga" : "Manhwa")
                 } label: {
                     Text(source.name)
                     Text(source.baseURL.host() ?? source.baseURL.absoluteString)

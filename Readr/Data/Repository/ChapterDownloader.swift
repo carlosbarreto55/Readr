@@ -29,7 +29,7 @@ struct ChapterDownloader: Sendable {
         _ job: DownloadJob, progress: @Sendable (DownloadProgress) async -> Void
     ) async throws -> Int64 {
         let content = try await transport.content(for: job.chapter)
-        guard content.contentType == job.contentType else {
+        guard content.matches(job.contentType) else {
             throw DownloadError.unexpectedContent(expected: job.contentType)
         }
         try Task.checkCancellation()

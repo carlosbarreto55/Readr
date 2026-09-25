@@ -16,8 +16,8 @@ architectural decisions.
 > *behave*.
 >
 > The runtime a site plugin needs now exists — fetching, parsing, caching, paging,
-> and the detail merge — and `liveSources()` registers FreeWebNovel and
-> AsuraScans. Every screen consumes only repository/domain contracts.
+> and the detail merge — and `liveSources()` registers FreeWebNovel,
+> AsuraScans, and MangaPill. Every screen consumes only repository/domain contracts.
 
 ## Project Responsibility
 

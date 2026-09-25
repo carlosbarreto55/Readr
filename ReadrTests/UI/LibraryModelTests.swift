@@ -247,6 +247,21 @@ struct LibraryModelTests {
         #expect(relaunched.state.sort == .lastRead)
     }
 
+    @Test("Manga filter selects manga alone and survives reconstruction")
+    func mangaFilter() async {
+        let settings = InMemorySettingsStore()
+        let items = [
+            item("Novel", sourceID: 1, type: .novel),
+            item("Manhwa", sourceID: 2, type: .manhwa),
+            item("Manga", sourceID: 3, type: .manga)
+        ]
+        let model = makeModel(items: items, settings: settings)
+        await model.load()
+        model.onAction(.selectContentFilter(.manga))
+        #expect(model.state.items.map(\.series.title) == ["Manga"])
+        #expect(makeModel(items: items, settings: settings).state.contentFilter == .manga)
+    }
+
     @Test("A persisted source no longer registered resets to All Sources")
     func unavailableSourceSelectionResets() async {
         let settings = InMemorySettingsStore()

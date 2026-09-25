@@ -40,7 +40,7 @@ enum DownloadError: Error, Equatable, LocalizedError {
         switch self {
         case .unexpectedContent(let expected):
             "The source returned \(expected == .novel ? "images" : "text") for a "
-                + "\(expected == .novel ? "novel" : "manhwa") chapter."
+                + "\(expected.rawValue) chapter."
         case .noPages:
             "The chapter lists no pages."
         }

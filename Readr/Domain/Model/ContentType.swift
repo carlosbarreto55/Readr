@@ -14,5 +14,6 @@ public enum ContentType: String, Sendable, Hashable, CaseIterable, Codable {
     // chapter, and downloaded file — the failure invariant 11 exists to prevent.
     case novel = "novel"
     case manhwa = "manhwa"
+    case manga = "manga"
     // swiftlint:enable redundant_string_enum_value
 }

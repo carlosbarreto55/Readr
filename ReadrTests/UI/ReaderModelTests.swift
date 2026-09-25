@@ -118,6 +118,27 @@ struct ReaderModelTests {
         #expect(model.state.document == .pages(pages(3).imageURLs))
     }
 
+    @Test("Manga restores its logical page index and keeps a separate layout")
+    func mangaPositionAndLayout() async {
+        let repository = FakeChapterRepository(chapters: [chapter(1, position: 0.4)])
+        await repository.script([pages(11)], for: chapter(1).id)
+        let settings = InMemorySettingsStore()
+        settings.setReaderPreferences(ReaderPreferences(pageLayout: .paged))
+        let model = make(route(1, .manga), repository: repository, settings: settings)
+        await model.load()
+
+        #expect(model.state.document == .pages(pages(11).imageURLs))
+        #expect(model.state.initialIndex == 4)
+        #expect(model.state.preferences.mangaPageLayout == .paged)
+        model.onAction(.positionChanged(index: 5))
+        await model.flushProgress()
+        #expect(model.state.progress == 0.5)
+
+        model.onAction(.setPageLayout(.vertical))
+        #expect(settings.readerPreferences.mangaPageLayout == .vertical)
+        #expect(settings.readerPreferences.pageLayout == .paged)
+    }
+
     @Test("A mismatched payload forces one fetch past stored content and is never shown")
     func mismatchForcesFetch() async {
         let repository = FakeChapterRepository(chapters: [chapter(1)])

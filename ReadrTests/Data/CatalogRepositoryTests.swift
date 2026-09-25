@@ -372,7 +372,7 @@ struct CatalogRepositoryTests {
         #expect(infos.first?.name == "Counting")
     }
 
-    @Test("The live registry discovers both initial plugins as domain metadata")
+    @Test("The live registry discovers all plugins as domain metadata")
     func liveSourcesAreProjected() async {
         let http = HTTPClient(session: StubURLProtocol.makeSession())
         let repository = DefaultCatalogRepository(
@@ -380,8 +380,8 @@ struct CatalogRepositoryTests {
 
         let infos = await repository.sources()
 
-        #expect(infos.map(\.name) == ["AsuraScans", "FreeWebNovel"])
-        #expect(infos.map(\.contentType) == [.manhwa, .novel])
+        #expect(infos.map(\.name) == ["AsuraScans", "FreeWebNovel", "MangaPill"])
+        #expect(infos.map(\.contentType) == [.manhwa, .novel, .manga])
     }
 
     @Test("Filter support is answered by the source, and an unknown source supports nothing")

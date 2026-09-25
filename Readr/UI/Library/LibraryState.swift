@@ -4,6 +4,7 @@ enum LibraryContentFilter: String, CaseIterable, Sendable, Identifiable {
     case all
     case novel
     case manhwa
+    case manga
 
     var id: String { rawValue }
 
@@ -12,6 +13,7 @@ enum LibraryContentFilter: String, CaseIterable, Sendable, Identifiable {
         case .all: "All Types"
         case .novel: "Novels"
         case .manhwa: "Manhwa"
+        case .manga: "Manga"
         }
     }
 
@@ -20,6 +22,7 @@ enum LibraryContentFilter: String, CaseIterable, Sendable, Identifiable {
         case .all: true
         case .novel: contentType == .novel
         case .manhwa: contentType == .manhwa
+        case .manga: contentType == .manga
         }
     }
 }

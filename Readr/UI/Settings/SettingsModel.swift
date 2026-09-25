@@ -40,8 +40,8 @@ final class SettingsModel {
             update { $0.fontDesign = design }
         case .setTextScale(let scale):
             update { $0.textScale = ReaderPreferences.clampedScale(scale) }
-        case .setPageLayout(let layout):
-            update { $0.pageLayout = layout }
+        case .setPageLayout, .setMangaPageLayout:
+            updateLayout(action)
         case .requestReset:
             state.isResetConfirmationPresented = true
         case .cancelReset:
@@ -90,5 +90,16 @@ final class SettingsModel {
     private func update(_ change: (inout ReaderPreferences) -> Void) {
         change(&state.preferences)
         settings.setReaderPreferences(state.preferences)
+    }
+
+    private func updateLayout(_ action: SettingsAction) {
+        switch action {
+        case .setPageLayout(let layout):
+            update { $0.pageLayout = layout }
+        case .setMangaPageLayout(let layout):
+            update { $0.mangaPageLayout = layout }
+        default:
+            break
+        }
     }
 }

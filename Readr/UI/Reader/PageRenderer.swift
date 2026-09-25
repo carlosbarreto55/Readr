@@ -24,6 +24,7 @@ import UIKit
 struct PageRenderer: View {
     let urls: [URL]
     let preferences: ReaderPreferences
+    let contentType: ContentType
     let initialIndex: Int
     let onPositionChanged: (Int) -> Void
     let onReachedEnd: () -> Void
@@ -40,13 +41,17 @@ struct PageRenderer: View {
 
     private static let lookahead = 3
 
+    private var layout: ReaderPageLayout {
+        contentType == .manga ? preferences.mangaPageLayout : preferences.pageLayout
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
             Group {
                 if containerSize == .zero {
                     Color.clear
                 } else {
-                    switch preferences.pageLayout {
+                    switch layout {
                     case .vertical: vertical
                     case .paged: paged
                     }
@@ -113,6 +118,7 @@ struct PageRenderer: View {
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.paging)
+        .environment(\.layoutDirection, contentType == .manga ? .rightToLeft : .leftToRight)
         .scrollIndicators(.hidden)
         .sensoryFeedback(.selection, trigger: reportedIndex)
     }
@@ -160,7 +166,7 @@ struct PageRenderer: View {
         reportedIndex = first
         onPositionChanged(first)
         prefetch(after: first)
-        if preferences.pageLayout == .paged, visible.contains(urls.count - 1) {
+        if layout == .paged, visible.contains(urls.count - 1) {
             onReachedEnd()
         }
     }
@@ -293,6 +299,7 @@ enum PageTiles {
     PageRenderer(
         urls: (1...3).map { URL(string: "https://example.invalid/page-\($0).jpg")! },
         preferences: ReaderPreferences(),
+        contentType: .manhwa,
         initialIndex: 0,
         onPositionChanged: { _ in },
         onReachedEnd: {},

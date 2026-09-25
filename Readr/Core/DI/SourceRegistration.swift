@@ -11,6 +11,7 @@
 public func liveSources(http: HTTPClient) -> [any Source] {
     [
         FreeWebNovel(http: http),
-        AsuraScans(http: http)
+        AsuraScans(http: http),
+        MangaPill(http: http)
     ]
 }

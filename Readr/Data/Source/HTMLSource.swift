@@ -163,7 +163,7 @@ class HTMLSource: Source, @unchecked Sendable {
             url: URL(string: document.location()) ?? baseURL)
     }
 
-    /// The page image URLs in reading order. **Manhwa sources override this.**
+    /// The page image URLs in reading order. **Manhwa and manga sources override this.**
     func parsePages(_ document: Document) throws -> [URL] {
         throw SourceError.contentShapeNotImplemented(
             source: name,
@@ -239,7 +239,7 @@ class HTMLSource: Source, @unchecked Sendable {
         switch type {
         case .novel:
             return .text(html: try parseText(document))
-        case .manhwa:
+        case .manhwa, .manga:
             return .pages(imageURLs: try parsePages(document))
         }
     }

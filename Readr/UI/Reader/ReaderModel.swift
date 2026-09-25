@@ -174,15 +174,15 @@ final class ReaderModel {
     /// A mismatched payload is never rendered.
     private func matchingContent(for chapter: Chapter) async throws -> ChapterContent {
         let content = try await repository.content(for: chapter, bypassingStored: false)
-        if content.contentType == route.contentType {
+        if content.matches(route.contentType) {
             return content
         }
         let forced = try await repository.content(for: chapter, bypassingStored: true)
-        guard forced.contentType == route.contentType else {
+        guard forced.matches(route.contentType) else {
             throw ReaderFailureError(
                 failure: ReaderFailure(
                     message:
-                        "This chapter returned \(Self.describe(forced.contentType)) where "
+                        "This chapter returned \(Self.describe(forced)) where "
                         + "\(Self.describe(route.contentType)) was expected.",
                     isRetryable: true))
         }
@@ -276,7 +276,11 @@ extension ReaderModel {
         case .setTextScale(let scale):
             state.preferences.textScale = ReaderPreferences.clampedScale(scale)
         case .setPageLayout(let layout):
-            state.preferences.pageLayout = layout
+            if route.contentType == .manga {
+                state.preferences.mangaPageLayout = layout
+            } else {
+                state.preferences.pageLayout = layout
+            }
         default:
             return
         }
@@ -320,6 +324,13 @@ extension ReaderModel {
 
     private static func describe(_ type: ContentType) -> String {
         type == .novel ? "text" : "page images"
+    }
+
+    private static func describe(_ content: ChapterContent) -> String {
+        switch content {
+        case .text: "text"
+        case .pages: "page images"
+        }
     }
 }
 

@@ -5,7 +5,8 @@ The composition root. Readr uses no DI framework — see `architecture.md` §7.1
 | File | Responsibility |
 | --- | --- |
 | `AppContainer.swift` | Owns `URLSession`, the `HTTPClient`, `SourceRegistry`, the `ModelContainer`, the library (wrapped so removal deletes downloads), catalog, series, chapter, download, and system-search repositories, and the Spotlight projection, and the settings store, plus the SwiftUI environment entry that carries it. Built once in `ReadrApp`. |
-| `SourceRegistration.swift` | `liveSources(http:)` — the one place that imports concrete site types. Registers FreeWebNovel and AsuraScans with the shared client. |
+| `SourceRegistration.swift` | `liveSources(http:)` — the one place that imports concrete site types. Registers FreeWebNovel, AsuraScans, and MangaPill with the shared client. |
+| `ImageRequestPolicy.swift` | Scopes MangaPill's CDN referer to its images in the shared Nuke pipeline. |
 
 `AppContainer` is `Sendable` rather than main-actor-bound, because background
 tasks reuse the same graph outside the UI lifecycle.

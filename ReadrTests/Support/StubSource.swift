@@ -57,7 +57,7 @@ struct StubSource: Source {
     func chapterContent(for _: Chapter) async throws -> ChapterContent {
         switch type {
         case .novel: .text(html: "<p>Stub chapter.</p>")
-        case .manhwa: .pages(imageURLs: [URL(string: "https://example.test/p/1.jpg")!])
+        case .manhwa, .manga: .pages(imageURLs: [URL(string: "https://example.test/p/1.jpg")!])
         }
     }
 }
