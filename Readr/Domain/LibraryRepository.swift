@@ -91,6 +91,13 @@ public protocol LibraryRepository: Sendable {
         reachedEnd: Bool,
         at date: Date
     ) async throws
+
+    /// Stamps a series as read now without touching any chapter: opening a
+    /// chapter counts toward the Library's Last Read sort, but not as reading
+    /// that chapter (`unified-reader-screen`).
+    ///
+    /// - Throws: `seriesNotSaved` when the series is not saved.
+    func recordOpened(_ series: SeriesID, at date: Date) async throws
 }
 
 /// What a library operation can fail with.

@@ -13,6 +13,7 @@ struct ChapterReadingOrderTests {
         index: Int,
         isRead: Bool = false,
         position: Double = 0,
+        readAt: TimeInterval? = nil,
         listed: Bool = true
     ) -> LibraryChapter {
         LibraryChapter(
@@ -21,6 +22,7 @@ struct ChapterReadingOrderTests {
                 name: slug, number: number),
             isRead: isRead,
             readingPosition: position,
+            lastReadAt: readAt.map { Date(timeIntervalSince1970: $0) },
             sourceIndex: index,
             isListedUpstream: listed)
     }
@@ -90,11 +92,11 @@ struct ChapterReadingOrderTests {
         #expect(ChapterReadingOrder.continueTarget(in: ordered)?.chapter.name == "c4")
     }
 
-    @Test("Continue prefers a chapter in progress, and starts at the first when unread")
+    @Test("Continue resumes the chapter read most recently, and starts at the first when unread")
     func continueInProgressOrFirst() {
         let inProgress = [
-            chapter("c1", number: 1, index: 0, isRead: true, position: 1),
-            chapter("c2", number: 2, index: 1, position: 0.4),
+            chapter("c1", number: 1, index: 0, isRead: true, position: 1, readAt: 10),
+            chapter("c2", number: 2, index: 1, position: 0.4, readAt: 20),
             chapter("c3", number: 3, index: 2)
         ]
         #expect(ChapterReadingOrder.continueTarget(in: inProgress)?.chapter.name == "c2")
@@ -102,6 +104,48 @@ struct ChapterReadingOrderTests {
         let unread = [chapter("c1", number: 1, index: 0), chapter("c2", number: 2, index: 1)]
         #expect(ChapterReadingOrder.continueTarget(in: unread)?.chapter.name == "c1")
         #expect(ChapterReadingOrder.continueTarget(in: []) == nil)
+    }
+
+    @Test("A chapter left unfinished does not outrank chapters read to the end since")
+    func continuePastAnAbandonedChapter() {
+        let ordered = [
+            chapter("c1", number: 1, index: 0, position: 0.4, readAt: 10),
+            chapter("c2", number: 2, index: 1, isRead: true, position: 1, readAt: 20),
+            chapter("c3", number: 3, index: 2, isRead: true, position: 1, readAt: 30),
+            chapter("c4", number: 4, index: 3)
+        ]
+        #expect(ChapterReadingOrder.continueTarget(in: ordered)?.chapter.name == "c4")
+    }
+
+    @Test("Reading further into an older unfinished chapter makes it the target")
+    func continueFollowsAReread() {
+        let ordered = [
+            chapter("c1", number: 1, index: 0, position: 0.5, readAt: 30),
+            chapter("c2", number: 2, index: 1, isRead: true, position: 1, readAt: 10),
+            chapter("c3", number: 3, index: 2, position: 0.3, readAt: 20)
+        ]
+        #expect(ChapterReadingOrder.continueTarget(in: ordered)?.chapter.name == "c1")
+    }
+
+    @Test("Rereading a finished chapter returns to the first unread chapter after it")
+    func continueAfterRereadingAFinishedChapter() {
+        let ordered = [
+            chapter("c1", number: 1, index: 0, isRead: true, position: 0.3, readAt: 30),
+            chapter("c2", number: 2, index: 1, isRead: true, position: 1, readAt: 10),
+            chapter("c3", number: 3, index: 2, position: 0.6, readAt: 20),
+            chapter("c4", number: 4, index: 3)
+        ]
+        #expect(ChapterReadingOrder.continueTarget(in: ordered)?.chapter.name == "c3")
+    }
+
+    @Test("A chapter only opened, never read, is not an anchor")
+    func openedChapterIsIgnored() {
+        let ordered = [
+            chapter("c1", number: 1, index: 0, readAt: 30),
+            chapter("c2", number: 2, index: 1, position: 0.4, readAt: 20),
+            chapter("c3", number: 3, index: 2)
+        ]
+        #expect(ChapterReadingOrder.continueTarget(in: ordered)?.chapter.name == "c2")
     }
 
     @Test("Continue lands on the last chapter when everything is read")

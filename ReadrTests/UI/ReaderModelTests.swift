@@ -15,6 +15,7 @@ private actor FakeChapterRepository: ChapterRepository {
     private let isSaved: Bool
     private(set) var contentCalls: [(ChapterID, Bool)] = []
     private(set) var progress: [ProgressWrite] = []
+    private(set) var opens = 0
 
     init(chapters: [LibraryChapter], isSaved: Bool = true) {
         listed = chapters
@@ -48,6 +49,11 @@ private actor FakeChapterRepository: ChapterRepository {
         _ chapter: ChapterID, in series: SeriesID, position: Double, reachedEnd: Bool
     ) -> ProgressRecording {
         progress.append(ProgressWrite(position: position, reachedEnd: reachedEnd))
+        return isSaved ? .stored : .notInLibrary
+    }
+
+    func recordOpened(in series: SeriesID) -> ProgressRecording {
+        opens += 1
         return isSaved ? .stored : .notInLibrary
     }
 
@@ -200,8 +206,9 @@ struct ReaderModelTests {
         model.onAction(.close)
         await model.flushProgress()
 
-        // Open (0), 10%, and the forced write on close at 12%.
-        #expect(await repository.progressPositions() == [0, 0.1, 0.12])
+        // 10%, and the forced write on close at 12%. Opening writes no progress.
+        #expect(await repository.progressPositions() == [0.1, 0.12])
+        #expect(await repository.opens == 1)
         #expect(abs(model.state.progress - 0.12) < 0.0001)
     }
 
@@ -217,7 +224,7 @@ struct ReaderModelTests {
         model.onAction(.positionChanged(index: 20))
         await model.flushProgress()
 
-        #expect(await repository.progressPositions() == [0, 0.2])
+        #expect(await repository.progressPositions() == [0.2])
         #expect(model.state.progress == 0.2)
     }
 
@@ -250,7 +257,7 @@ struct ReaderModelTests {
         model.onAction(.reachedEnd)
         await model.flushProgress()
 
-        #expect(await repository.progressEnds() == [false, true])
+        #expect(await repository.progressEnds() == [true])
         #expect(model.state.progress == 1)
         #expect(model.state.chapters.first?.isRead == true)
     }
@@ -354,5 +361,40 @@ extension ChapterContent {
     fileprivate var imageURLs: [URL] {
         if case .pages(let urls) = self { return urls }
         return []
+    }
+}
+
+extension ReaderModelTests {
+    @Test("Opening a chapter and backing out records the open, never the chapter")
+    func openWithoutReadingWritesNoProgress() async throws {
+        let repository = FakeChapterRepository(chapters: [chapter(1, position: 0.5), chapter(2)])
+        await repository.script([pages(101)], for: chapter(1).id)
+        await repository.script([pages(51)], for: chapter(2).id)
+        let model = make(route(1, .manhwa), repository: repository)
+        await model.load()
+
+        model.onAction(.positionChanged(index: 52))  // 2% from where it opened
+        model.onAction(.nextChapter)
+        try await waitUntil { model.state.document == .pages(pages(51).imageURLs) }
+        model.onAction(.close)
+        await model.flushProgress()
+
+        #expect(await repository.progressPositions().isEmpty)
+        #expect(await repository.opens == 2)
+        #expect(model.state.chapters.first?.readingPosition == 0.5)
+    }
+
+    @Test("Moving far enough from where a chapter opened counts as reading it")
+    func movingFromOpenedPositionWrites() async {
+        let repository = FakeChapterRepository(chapters: [chapter(1, position: 0.5)])
+        await repository.script([pages(101)], for: chapter(1).id)
+        let model = make(route(1, .manhwa), repository: repository)
+        await model.load()
+
+        model.onAction(.positionChanged(index: 40))  // 10% back from 50%
+        model.onAction(.close)
+        await model.flushProgress()
+
+        #expect(await repository.progressPositions() == [0.4, 0.4])
     }
 }

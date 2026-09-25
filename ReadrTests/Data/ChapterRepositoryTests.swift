@@ -109,6 +109,15 @@ struct ChapterRepositoryTests {
         #expect(await library.saveCalls.isEmpty)
     }
 
+    @Test("Opening a chapter is recorded against a saved series only")
+    func openRecorded() async throws {
+        let saved = make(saved: true).repository
+        let unsaved = make(saved: false).repository
+
+        #expect(try await saved.recordOpened(in: id) == .stored)
+        #expect(try await unsaved.recordOpened(in: id) == .notInLibrary)
+    }
+
     @Test("A stored payload is served without a network request")
     func storedPayloadWins() async throws {
         let fixture = make(saved: true)

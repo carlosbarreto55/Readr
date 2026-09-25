@@ -66,6 +66,10 @@ struct ObservedLibraryRepository: LibraryRepository {
         try await base.recordProgress(
             chapter, in: series, position: position, reachedEnd: reachedEnd, at: date)
     }
+
+    func recordOpened(_ series: SeriesID, at date: Date) async throws {
+        try await base.recordOpened(series, at: date)
+    }
 }
 
 extension DefaultDownloadRepository: LibraryChangeObserver {

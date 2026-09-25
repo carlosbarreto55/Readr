@@ -19,6 +19,12 @@ final class ReaderModel {
     private var loadToken = 0
     private var lastPersistedProgress: Double?
     private var hasReachedEnd = false
+    /// Where the current chapter opened, and whether the reader has since moved
+    /// far enough from it to count as reading it. Until then nothing is written
+    /// for the chapter, so an accidental open never moves Continue Reading
+    /// (`unified-reader-screen`).
+    private var openedProgress: Double = 0
+    private var hasEngaged = false
     /// Progress writes run one after another, so a late write can never land
     /// after — and overwrite — a newer one.
     private var persistTask: Task<Void, Never>?
@@ -139,6 +145,7 @@ final class ReaderModel {
         state.progress = 0
         lastPersistedProgress = nil
         hasReachedEnd = false
+        hasEngaged = false
 
         do {
             let content = try await matchingContent(for: chapter)
@@ -152,10 +159,9 @@ final class ReaderModel {
             state.document = document
             state.documentGeneration += 1
             state.phase = .loaded
-            // Opening counts as reading: it stamps last-read, which is what the
-            // Library's Last Read sort follows, and reveals whether progress is
-            // kept at all.
-            persist(position: restored, reachedEnd: false)
+            openedProgress = restored
+            lastPersistedProgress = restored
+            recordOpened()
         } catch let failure as ReaderFailureError {
             guard token == loadToken else { return }
             state.phase = .failed(failure.failure)
@@ -212,18 +218,22 @@ final class ReaderModel {
         // the whole Reader on every visibility callback while scrolling.
         guard progress != state.progress else { return }
         state.progress = progress
+        if abs(progress - openedProgress) >= Self.persistThreshold {
+            hasEngaged = true
+        }
         persistCurrent(force: false)
     }
 
     private func reachedEnd() {
         guard state.phase == .loaded, !hasReachedEnd else { return }
         hasReachedEnd = true
+        hasEngaged = true
         state.progress = 1
         persist(position: 1, reachedEnd: true)
     }
 
     private func persistCurrent(force: Bool) {
-        guard state.phase == .loaded else { return }
+        guard state.phase == .loaded, hasEngaged else { return }
         let moved = lastPersistedProgress.map { abs(state.progress - $0) } ?? 1
         guard force || moved >= Self.persistThreshold else { return }
         persist(position: state.progress, reachedEnd: hasReachedEnd)
@@ -241,6 +251,22 @@ final class ReaderModel {
             await previous?.value
             let recording = try? await repository.recordProgress(
                 chapterID, in: seriesID, position: position, reachedEnd: reachedEnd)
+            if recording == .notInLibrary {
+                self?.state.isProgressStored = false
+            }
+        }
+    }
+
+    /// Opening counts as reading the series — the Library's Last Read sort
+    /// follows it — but not the chapter. Its answer reveals whether progress is
+    /// kept at all.
+    private func recordOpened() {
+        let repository = self.repository
+        let seriesID = SeriesID(sourceID: route.sourceID, url: route.seriesURL)
+        let previous = persistTask
+        persistTask = Task { [weak self] in
+            await previous?.value
+            let recording = try? await repository.recordOpened(in: seriesID)
             if recording == .notInLibrary {
                 self?.state.isProgressStored = false
             }

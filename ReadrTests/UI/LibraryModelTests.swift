@@ -88,6 +88,7 @@ private actor FakeLibraryRepository: LibraryRepository {
     func recordProgress(
         _ chapter: ChapterID, in series: SeriesID, position: Double, reachedEnd: Bool, at date: Date
     ) {}
+    func recordOpened(_ series: SeriesID, at date: Date) {}
 }
 
 private struct FakeCatalogRepository: CatalogRepository {

@@ -55,4 +55,10 @@ struct DefaultChapterRepository: ChapterRepository {
             chapter, in: series, position: position, reachedEnd: reachedEnd, at: .now)
         return .stored
     }
+
+    func recordOpened(in series: SeriesID) async throws -> ProgressRecording {
+        guard try await library.isSaved(series) else { return .notInLibrary }
+        try await library.recordOpened(series, at: .now)
+        return .stored
+    }
 }

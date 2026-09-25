@@ -190,6 +190,19 @@ actor SwiftDataLibraryRepository: LibraryRepository {
         }
     }
 
+    func recordOpened(_ series: SeriesID, at date: Date) throws {
+        guard let existing = try entity(for: series) else {
+            throw LibraryRepositoryError.seriesNotSaved(series)
+        }
+        existing.lastReadAt = date
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
+    }
+
     /// Rejects foreign chapters before anything is written.
     ///
     /// Lookups during a write are scoped to one series, so a chapter whose

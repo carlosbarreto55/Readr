@@ -49,6 +49,15 @@ public protocol ChapterRepository: Sendable {
     func recordProgress(
         _ chapter: ChapterID, in series: SeriesID, position: Double, reachedEnd: Bool
     ) async throws -> ProgressRecording
+
+    /// Records that a chapter of `series` was opened: the series is read now, no
+    /// chapter's progress changes.
+    ///
+    /// - Returns: Whether anything was stored — which also tells the Reader
+    ///   whether progress will be kept.
+    /// - Throws: Whatever the library threw while writing.
+    @discardableResult
+    func recordOpened(in series: SeriesID) async throws -> ProgressRecording
 }
 
 /// Whether progress was stored.

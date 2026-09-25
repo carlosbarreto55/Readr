@@ -185,6 +185,15 @@ actor InMemoryLibraryRepository: LibraryRepository {
         stored[series] = entry
     }
 
+    func recordOpened(_ series: SeriesID, at date: Date) throws {
+        try check("recordOpened")
+        guard let entry = stored[series] else {
+            throw LibraryRepositoryError.seriesNotSaved(series)
+        }
+        stored[series]?.item = LibraryItem(
+            series: entry.item.series, dateAdded: entry.item.dateAdded, lastReadAt: date)
+    }
+
     private func check(_ operation: String) throws {
         if failures.contains(operation) { throw FakeRepositoryError.failed }
     }

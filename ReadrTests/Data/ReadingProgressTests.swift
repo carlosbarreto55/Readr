@@ -40,6 +40,19 @@ struct ReadingProgressTests {
         #expect(try await repository.savedItems().first?.lastReadAt == now)
     }
 
+    @Test("Opening stamps only the series; no chapter changes")
+    func openStampsSeriesOnly() async throws {
+        let repository = try await savedRepository()
+        let now = Date(timeIntervalSince1970: 7_000)
+
+        try await repository.recordOpened(id, at: now)
+
+        let stored = try #require(try await repository.libraryChapters(for: id).first)
+        #expect(stored.readingPosition == 0)
+        #expect(stored.lastReadAt == nil)
+        #expect(try await repository.savedItems().first?.lastReadAt == now)
+    }
+
     @Test("Reaching the end marks read, and re-reading never marks unread")
     func reachedEndMarksRead() async throws {
         let repository = try await savedRepository()
