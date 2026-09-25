@@ -6,17 +6,28 @@ import SwiftUI
 /// Native rather than a web view so Dynamic Type, selection, and reader themes
 /// work (`architecture.md` §9). One `Text` per block in a lazy stack, so a long
 /// chapter lays out only what is on screen; position is the first visible block.
+///
+/// A pinch resizes the text rather than magnifying it: it steps the reader's
+/// text scale, previewing each step as a reflow, and reports the result on
+/// release. The bound block position keeps the passage in view as text reflows.
 struct TextRenderer: View {
     let blocks: [ChapterTextBlock]
     let preferences: ReaderPreferences
     let onPositionChanged: (Int) -> Void
     let onReachedEnd: () -> Void
+    let onTextScaleChanged: (Double) -> Void
     let onTap: () -> Void
 
     /// The Dynamic Type body size. The reader's text scale multiplies it; it
     /// never replaces it.
     @ScaledMetric(relativeTo: .body) private var bodySize: CGFloat = 17
     @State private var position: Int?
+    /// The pinch in progress: the scale it started from and its accumulated
+    /// factor. `nil` when no pinch is under way.
+    @State private var pinch: (start: Double, factor: CGFloat)?
+    /// The snapped scale a pinch is previewing; replaces the stored one until
+    /// release.
+    @State private var previewScale: Double?
 
     init(
         blocks: [ChapterTextBlock],
@@ -24,17 +35,20 @@ struct TextRenderer: View {
         initialIndex: Int,
         onPositionChanged: @escaping (Int) -> Void,
         onReachedEnd: @escaping () -> Void,
+        onTextScaleChanged: @escaping (Double) -> Void,
         onTap: @escaping () -> Void
     ) {
         self.blocks = blocks
         self.preferences = preferences
         self.onPositionChanged = onPositionChanged
         self.onReachedEnd = onReachedEnd
+        self.onTextScaleChanged = onTextScaleChanged
         self.onTap = onTap
         _position = State(initialValue: initialIndex)
     }
 
-    private var size: CGFloat { bodySize * preferences.textScale }
+    private var textScale: Double { previewScale ?? preferences.textScale }
+    private var size: CGFloat { bodySize * textScale }
     private var theme: ReaderTheme { preferences.theme }
 
     var body: some View {
@@ -60,7 +74,35 @@ struct TextRenderer: View {
         }
         .contentShape(.rect)
         .onTapGesture(perform: onTap)
+        .gesture(
+            PinchRecognizer(onChanged: { factor, _ in pinched(by: factor) }, onEnded: pinchEnded)
+        )
         .background(ReaderColors.background(theme))
+    }
+
+    /// The text scale a pinch of `factor` makes from `start`: clamped and
+    /// snapped to the settings slider's steps.
+    static func pinchedScale(from start: Double, factor: CGFloat) -> Double {
+        ReaderPreferences.clampedScale(start * Double(factor))
+    }
+
+    private func pinched(by factor: CGFloat) {
+        let current = pinch ?? (start: textScale, factor: 1)
+        let next = (start: current.start, factor: current.factor * factor)
+        pinch = next
+        // Snapped, so the text reflows once per step rather than every frame.
+        let scale = Self.pinchedScale(from: next.start, factor: next.factor)
+        if scale != previewScale {
+            previewScale = scale
+        }
+    }
+
+    private func pinchEnded() {
+        if let previewScale, previewScale != preferences.textScale {
+            onTextScaleChanged(previewScale)
+        }
+        pinch = nil
+        previewScale = nil
     }
 
     @ViewBuilder
@@ -135,6 +177,7 @@ struct TextRenderer: View {
                 initialIndex: 0,
                 onPositionChanged: { _ in },
                 onReachedEnd: {},
+                onTextScaleChanged: { _ in },
                 onTap: {}
             )
             .tabItem { Text(theme.title) }

@@ -21,6 +21,9 @@ import UIKit
 ///   under the reader. An unknown page is one screen tall.
 /// - Pages are **decoded at display width**, with the prefetcher asking for the
 ///   same requests so prefetched pages are cache hits.
+///
+/// Pinch zoom magnifies the viewport around the scroll view, never the rows, so
+/// none of the above changes with zoom (`ZoomViewport`).
 struct PageRenderer: View {
     let urls: [URL]
     let preferences: ReaderPreferences
@@ -29,6 +32,8 @@ struct PageRenderer: View {
     let onPositionChanged: (Int) -> Void
     let onReachedEnd: () -> Void
     let onTap: () -> Void
+    /// Where the zoom starts. Tests open a renderer already zoomed with it.
+    var initialZoom: CGFloat = 1
 
     @Environment(\.displayScale) private var displayScale
     /// The reader's visible size. Every row's height is computed from it: a row
@@ -51,9 +56,15 @@ struct PageRenderer: View {
                 if containerSize == .zero {
                     Color.clear
                 } else {
-                    switch layout {
-                    case .vertical: vertical
-                    case .paged: paged
+                    ZoomViewport(
+                        layout: layout == .vertical ? .vertical : .paged, size: containerSize,
+                        initialScale: initialZoom
+                    ) { isZoomed in
+                        switch layout {
+                        case .vertical: vertical
+                        // A zoomed page pans instead of turning.
+                        case .paged: paged.scrollDisabled(isZoomed)
+                        }
                     }
                 }
             }
