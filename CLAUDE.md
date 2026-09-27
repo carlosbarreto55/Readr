@@ -16,6 +16,8 @@ specific to Claude Code, so the two can never contradict each other.
 - Nested `AGENTS.md` files apply to their subtree. Read the nearest one before
   editing inside `Readr/UI/`, `Readr/Sources/`, `Readr/Data/Source/`, or
   `Readr/Data/Local/Database/`.
+- Never commit on `main`. Before any change, update `main` and branch off it
+  as `feat/`, `fix/`, or `chore/` — see `AGENTS.md` § Branching.
 
 ## Reading order
 
