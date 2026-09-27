@@ -2,10 +2,11 @@
 
 ### Requirement: Reader appearance SHALL be adjustable and SHALL persist
 
-The Reader MUST offer a theme, a text font, a text size, and a manhwa page layout,
-MUST apply a change immediately, and MUST restore the reader's choices on the
-next launch. Text size MUST scale relative to the system Dynamic Type size rather
-than replacing it. The reader theme MUST apply only to the Reader. Its Match App
+The Reader MUST offer a theme, a text font, a text size, a manhwa page layout,
+and a separate manga page layout, MUST apply a change immediately, and MUST
+restore the reader's choices on the next launch. Manga MUST default to paged
+right-to-left; manhwa MUST retain its vertical default. Text size MUST scale
+relative to the system Dynamic Type size rather than replacing it. The reader theme MUST apply only to the Reader. Its Match App
 choice, the default, MUST follow the app theme (`app-appearance`); its Light,
 Sepia, and Dark choices MUST hold regardless of the app theme.
 
@@ -35,3 +36,9 @@ Sepia, and Dark choices MUST hold regardless of the app theme.
 
 - **WHEN** the system Dynamic Type size is increased
 - **THEN** chapter text SHALL grow, with the reader's text size applied on top
+
+#### Scenario: Manga is opened with default preferences
+
+- **WHEN** a manga chapter is opened before its layout has been customized
+- **THEN** it SHALL open in right-to-left paged layout without changing the
+  manhwa layout preference
