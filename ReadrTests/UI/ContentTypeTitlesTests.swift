@@ -13,6 +13,12 @@ struct ContentTypeTitlesTests {
             ContentType.allCases.map(\.pluralTitle) == ["Novels", "Manhwa", "Manga", "Comics"])
     }
 
+    @Test("Browse names each source by what it offers")
+    func browseTitles() {
+        #expect(
+            ContentType.allCases.map(\.browseTitle) == ["Web Novels", "Manhwa", "Manga", "HQs"])
+    }
+
     @Test("Comics are read in issues; everything else in chapters")
     func units() {
         #expect(ContentType.comic.unitTitle == "Issue")
