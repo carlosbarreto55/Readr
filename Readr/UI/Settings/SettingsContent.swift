@@ -6,6 +6,19 @@ struct SettingsContent: View {
 
     var body: some View {
         Form {
+            Section {
+                Picker(
+                    "App Theme",
+                    selection: Binding(
+                        get: { state.appTheme }, set: { onAction(.setAppTheme($0)) })
+                ) {
+                    ForEach(AppTheme.allCases) { Text($0.title).tag($0) }
+                }
+            } header: {
+                Text("Appearance")
+            } footer: {
+                Text("Applies to the whole app. The reader has its own theme below.")
+            }
             readerSection
             sourcesSection
             Section("Storage") {
@@ -78,9 +91,9 @@ struct SettingsContent: View {
     private var readerSection: some View {
         Section("Reader") {
             Picker(
-                "Theme",
+                "Reader Theme",
                 selection: Binding(
-                    get: { state.preferences.theme }, set: { onAction(.setTheme($0)) })
+                    get: { state.preferences.theme }, set: { onAction(.setReaderTheme($0)) })
             ) {
                 ForEach(ReaderTheme.allCases) { Text($0.title).tag($0) }
             }
@@ -146,6 +159,7 @@ struct SettingsContent: View {
     NavigationStack {
         SettingsContent(
             state: SettingsState(
+                appTheme: .dark,
                 preferences: ReaderPreferences(theme: .sepia, textScale: 1.2),
                 sources: [
                     SourceInfo(

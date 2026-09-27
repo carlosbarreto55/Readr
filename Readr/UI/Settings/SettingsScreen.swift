@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsScreen: View {
     @Environment(\.appContainer) private var container
+    @Environment(\.appAppearance) private var appearance
     @State private var model: SettingsModel?
 
     var body: some View {
@@ -14,6 +15,10 @@ struct SettingsScreen: View {
                         guard model == nil else { return }
                         model = SettingsModel(
                             settings: container.settings,
+                            // Outside the app shell nothing observes the theme,
+                            // so a detached model is enough there.
+                            appearance: appearance
+                                ?? AppAppearanceModel(settings: container.settings),
                             catalog: container.catalog,
                             downloads: container.downloads,
                             systemSearch: container.systemSearch,

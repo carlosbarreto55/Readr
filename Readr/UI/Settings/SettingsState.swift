@@ -1,6 +1,7 @@
 import Foundation
 
 struct SettingsState {
+    var appTheme = AppTheme.system
     var preferences = ReaderPreferences()
     var sources: [SourceInfo] = []
     var appVersion = ""
@@ -16,7 +17,8 @@ struct SettingsState {
 
 enum SettingsAction: Sendable, Equatable {
     case appeared
-    case setTheme(ReaderTheme)
+    case setAppTheme(AppTheme)
+    case setReaderTheme(ReaderTheme)
     case setFontDesign(ReaderFontDesign)
     case setTextScale(Double)
     case setPageLayout(ReaderPageLayout)

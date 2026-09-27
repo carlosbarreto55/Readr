@@ -1,7 +1,10 @@
 /// How the Reader looks. Every value is the reader's own choice and is stored
 /// through `SettingsStore`, so the Reader and Settings read the same keys.
+///
+/// Applies to the Reader only; the rest of the app follows `AppTheme`.
 public enum ReaderTheme: String, Sendable, Hashable, CaseIterable, Identifiable {
-    /// Follows the system appearance.
+    /// Follows the app theme, which may itself follow the system. Stored as
+    /// `"system"`, its name from before there was an app theme.
     case system
     case light
     case sepia
@@ -11,7 +14,7 @@ public enum ReaderTheme: String, Sendable, Hashable, CaseIterable, Identifiable 
 
     public var title: String {
         switch self {
-        case .system: "System"
+        case .system: "Match App"
         case .light: "Light"
         case .sepia: "Sepia"
         case .dark: "Dark"
