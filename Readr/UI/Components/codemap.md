@@ -14,6 +14,7 @@ that screen's directory until a second caller appears.
 | `DownloadStateIndicator.swift` | Series chapter rows and the Reader's download control |
 | `FailureBanner.swift` | Library removal failures and Series refresh/membership failures |
 | `CoverImage.swift` | NukeUI cover loading plus stable missing/loading/failure placeholder |
+| `ContentType+Titles.swift` | Series header, Settings source rows, and Reader chrome: content-type names and "Chapter"/"Issue" units, as exhaustive switches |
 
 `CoverImage` is the only component permitted to import NukeUI outside the
 reader's page renderer.

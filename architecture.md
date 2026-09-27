@@ -12,7 +12,7 @@ documents for current implementation locations.
 > binding. The contracts they govern — domain models, the `Source` protocol,
 > source identity, the composition root, the app shell, the SwiftData store with
 > its migration plan, and the HTTP/HTML/caching runtime behind `Source` — are
-> implemented, along with the FreeWebNovel, AsuraScans, and MangaPill plugins and the
+> implemented, along with the FreeWebNovel, AsuraScans, MangaPill, and ReadComicsOnline plugins and the
 > repository-backed Library, Browse, Series, Reader, Downloads, and Settings
 > screens, download storage, both background task entry points, and the Spotlight
 > projection.
@@ -170,8 +170,9 @@ enum ChapterContent: Sendable {
 }
 ```
 
-Novel sources return text; manhwa and manga sources return pages. Manga has a
-distinct stable `ContentType` raw value and uses right-to-left paging by default.
+Novel sources return text; manhwa, manga, and comic sources return pages. Manga
+and comics each have a distinct stable `ContentType` raw value and their own page
+layout preference: manga pages right-to-left by default, comics left-to-right.
 
 ```swift
 protocol Source: Sendable {

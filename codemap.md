@@ -17,7 +17,7 @@ architectural decisions.
 >
 > The runtime a site plugin needs now exists — fetching, parsing, caching, paging,
 > and the detail merge — and `liveSources()` registers FreeWebNovel,
-> AsuraScans, and MangaPill. Every screen consumes only repository/domain contracts.
+> AsuraScans, MangaPill, and ReadComicsOnline. Every screen consumes only repository/domain contracts.
 
 ## Project Responsibility
 
