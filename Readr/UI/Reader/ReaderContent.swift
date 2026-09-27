@@ -83,6 +83,7 @@ struct ReaderContent: View {
                 initialIndex: state.initialIndex,
                 onPositionChanged: { onAction(.positionChanged(index: $0)) },
                 onReachedEnd: { onAction(.reachedEnd) },
+                onTextScaleChanged: { onAction(.setTextScale($0)) },
                 onTap: { onAction(.toggleControls) }
             )
             .id(state.documentGeneration)
