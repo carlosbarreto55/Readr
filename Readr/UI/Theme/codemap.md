@@ -13,7 +13,7 @@ appear.
 Every entry in `Typography` is a `Font.TextStyle`, never a point size. Readr is a
 reading app: a fixed size is a bug, not a style choice.
 
-Reader themes are theme data here, not reader logic. `system` follows `Palette`;
+Reader themes are theme data here, not reader logic. `system` ("Match App") follows `Palette`, so it takes the app theme `ReadrApp` applies;
 the fixed themes also pin a color scheme so chrome drawn over the page stays
 legible. Reader text size is the one computed size in the app: a `@ScaledMetric`
 body size multiplied by the reader's scale, so Dynamic Type still drives it.

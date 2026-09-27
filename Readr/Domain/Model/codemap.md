@@ -19,7 +19,8 @@ annotations, no framework imports beyond Foundation.
 | `Filter` / `FilterList` | catalog filtering primitives |
 | `Download` | `DownloadEntry`, `DownloadState`, `DownloadProgress` (fraction or indeterminate), `DownloadQueueSnapshot` |
 | `LibrarySearch` | enum namespace — the case- and diacritic-insensitive Library search match |
-| `ReaderPreferences` | struct — reader theme, font, text scale, page layout; plus `ReaderSettingKeys` and `SettingsStore` accessors |
+| `ReaderPreferences` | struct — reader theme, font, text scale, page layout; plus `ReaderSettingKeys` and `SettingsStore` accessors. Reader-only: its `system` theme ("Match App") follows the app theme |
+| `AppAppearance` | enum `AppTheme` (system, light, dark) — the app-wide theme, independent of the reader theme; plus `AppSettingKeys` and `SettingsStore` accessors |
 
 `Series` and `Chapter` define equality and hashing on `(sourceID, url)` alone, so
 refreshed metadata never changes which record a value refers to.
