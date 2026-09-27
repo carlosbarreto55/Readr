@@ -33,15 +33,13 @@ struct BrowseContent: View {
                     onAction(.sourceSelected(source.id))
                 } label: {
                     VStack(alignment: .leading, spacing: Spacing.xSmall) {
-                        Text(source.name)
+                        Text(source.contentType.browseTitle)
                             .font(Typography.body)
                             .foregroundStyle(Palette.label)
 
-                        Text(
-                            "\(source.lang.uppercased()) · \(source.contentType.rawValue.capitalized)"
-                        )
-                        .font(Typography.caption)
-                        .foregroundStyle(Palette.secondaryLabel)
+                        Text("\(source.name) · \(source.lang.uppercased())")
+                            .font(Typography.caption)
+                            .foregroundStyle(Palette.secondaryLabel)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(.rect)

@@ -31,7 +31,7 @@ struct BrowseState: Sendable {
         case .sources:
             "Browse"
         case .catalog:
-            selectedSource?.name ?? "Catalog"
+            selectedSource?.contentType.browseTitle ?? "Catalog"
         }
     }
 }

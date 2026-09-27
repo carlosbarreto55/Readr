@@ -35,4 +35,15 @@ extension ContentType {
         case .comic: "Comics"
         }
     }
+
+    /// What a Browse source offers, named for the reader rather than the site:
+    /// "Web Novels", "HQs".
+    var browseTitle: String {
+        switch self {
+        case .novel: "Web Novels"
+        case .manhwa: "Manhwa"
+        case .manga: "Manga"
+        case .comic: "HQs"
+        }
+    }
 }

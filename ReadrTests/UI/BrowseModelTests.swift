@@ -51,6 +51,7 @@ struct BrowseModelTests {
 
         #expect(model.state.request == .popular)
         #expect(model.state.selectedSource == source)
+        #expect(model.state.navigationTitle == "Web Novels")
         #expect(await catalog.operations() == [.popular(page: 1)])
         #expect(model.state.items.map(\.isSaved) == [true, false])
         #expect(model.state.items.map(\.sourceName) == [source.name, source.name])
