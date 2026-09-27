@@ -20,4 +20,4 @@
 
 - [x] 4.1 Run `openspec validate add-readcomicsonline-comics --strict`.
 - [x] 4.2 Run `/verify` (XcodeGen, build, tests, SwiftLint, swift-format) and fix any issues in changed files.
-- [ ] 4.3 In the simulator: browse ReadComicsOnline, open Absolute Batman #24 in paged left-to-right, switch to vertical, then download the issue and reopen it offline.
+- [x] 4.3 In the simulator: browse ReadComicsOnline, open Absolute Batman #24 in paged left-to-right, switch to vertical, then download the issue and reopen it offline.
