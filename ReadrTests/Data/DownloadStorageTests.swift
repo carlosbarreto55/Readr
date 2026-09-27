@@ -15,8 +15,10 @@ struct DownloadStorageTests {
         DownloadFixture.pageURLs(chapter, count: count)
     }
 
-    @Test("Manga chapter downloads every page and reopens offline")
-    func mangaRoundTrip() async throws {
+    @Test(
+        "Manga chapters and comic issues download every page and reopen offline",
+        arguments: [ContentType.manga, .comic])
+    func imagePagesRoundTrip(contentType: ContentType) async throws {
         let fixture = try DownloadFixture()
         let urls = pageURLs(1, count: 2)
         await fixture.transport.setContent(.success(.pages(imageURLs: urls)), for: chapter(1).url)
@@ -24,12 +26,12 @@ struct DownloadStorageTests {
             await fixture.transport.setPage(.success(Data("page \(index)".utf8)), for: url)
         }
         _ = try await fixture.repository.enqueue(
-            [chapter(1)], seriesTitle: "Manga", contentType: .manga)
+            [chapter(1)], seriesTitle: "Pages", contentType: contentType)
         await fixture.repository.waitUntilIdle()
 
         guard case .pages(let stored) = await fixture.repository.storedContent(for: chapter(1).id)
         else {
-            Issue.record("Expected stored manga pages")
+            Issue.record("Expected stored \(contentType.rawValue) pages")
             return
         }
         #expect(stored.count == 2)

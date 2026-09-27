@@ -32,6 +32,7 @@ struct SettingsModelTests {
         model.onAction(.setTextScale(1.4))
         model.onAction(.setPageLayout(.paged))
         model.onAction(.setMangaPageLayout(.vertical))
+        model.onAction(.setComicPageLayout(.vertical))
 
         let stored = settings.readerPreferences
         #expect(stored.theme == .dark)
@@ -39,6 +40,7 @@ struct SettingsModelTests {
         #expect(abs(stored.textScale - 1.4) < 0.0001)
         #expect(stored.pageLayout == .paged)
         #expect(stored.mangaPageLayout == .vertical)
+        #expect(stored.comicPageLayout == .vertical)
         #expect(model.state.preferences == stored)
     }
 

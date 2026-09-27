@@ -12,7 +12,8 @@ import Foundation
 /// failure: it returns `SeriesPage.empty`.
 ///
 /// A plugin returns exactly one content shape: `.text(html:)` when `type` is
-/// `.novel`, `.pages(imageURLs:)` when it is `.manhwa`, never both.
+/// `.novel`, `.pages(imageURLs:)` when it is `.manhwa`, `.manga`, or `.comic`,
+/// never both.
 public protocol Source: Sendable {
     /// Produced by `computeSourceID(name:lang:type:)`, never a hand-picked literal.
     ///

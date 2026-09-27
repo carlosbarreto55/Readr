@@ -82,22 +82,20 @@ struct SeriesState {
         if series.status != .unknown {
             parts.append(series.status.rawValue.capitalized)
         }
-        parts.append(
-            series.contentType == .novel
-                ? "Novel"
-                : series.contentType == .manga
-                    ? "Manga" : "Manhwa")
+        parts.append(series.contentType.title)
         if !sourceName.isEmpty {
             parts.append(sourceName)
         }
         return parts.joined(separator: " · ")
     }
 
+    /// "Chapters" or, for a comic, "Issues" — "Chapters" until the series loads.
     var chapterCountLabel: String {
-        switch chapters.count {
-        case 0: "Chapters"
-        case 1: "1 Chapter"
-        default: "\(chapters.count) Chapters"
+        let unit = series?.contentType ?? .novel
+        return switch chapters.count {
+        case 0: unit.pluralUnitTitle
+        case 1: "1 \(unit.unitTitle)"
+        default: "\(chapters.count) \(unit.pluralUnitTitle)"
         }
     }
 }

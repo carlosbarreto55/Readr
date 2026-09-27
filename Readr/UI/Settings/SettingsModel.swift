@@ -46,7 +46,7 @@ final class SettingsModel {
             update { $0.fontDesign = design }
         case .setTextScale(let scale):
             update { $0.textScale = ReaderPreferences.clampedScale(scale) }
-        case .setPageLayout, .setMangaPageLayout:
+        case .setPageLayout, .setMangaPageLayout, .setComicPageLayout:
             updateLayout(action)
         case .requestReset:
             state.isResetConfirmationPresented = true
@@ -119,6 +119,8 @@ final class SettingsModel {
             update { $0.pageLayout = layout }
         case .setMangaPageLayout(let layout):
             update { $0.mangaPageLayout = layout }
+        case .setComicPageLayout(let layout):
+            update { $0.comicPageLayout = layout }
         default:
             break
         }

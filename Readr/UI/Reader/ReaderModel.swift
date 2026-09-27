@@ -302,11 +302,7 @@ extension ReaderModel {
         case .setTextScale(let scale):
             state.preferences.textScale = ReaderPreferences.clampedScale(scale)
         case .setPageLayout(let layout):
-            if route.contentType == .manga {
-                state.preferences.mangaPageLayout = layout
-            } else {
-                state.preferences.pageLayout = layout
-            }
+            state.preferences.setPageLayout(layout, for: route.contentType)
         default:
             return
         }

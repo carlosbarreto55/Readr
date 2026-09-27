@@ -81,23 +81,25 @@ struct ChapterPayloadStoreTests {
         #expect(try Data(contentsOf: urls[1]) == Data("page 1".utf8))
     }
 
-    @Test("Manga page payloads keep their type and reopen as local files")
-    func mangaPagesAreLocal() throws {
+    @Test(
+        "Manga and comic page payloads keep their type and reopen as local files",
+        arguments: ["manga", "comic"])
+    func imagePagesAreLocal(contentType: String) throws {
         let store = try makeStore()
         let staging = try store.beginWrite(for: chapter, seriesURL: seriesURL)
         let name = try store.writePage(
-            Data("manga".utf8), index: 0,
+            Data(contentType.utf8), index: 0,
             sourceURL: URL(string: "https://cdn.test/1.jpeg")!, into: staging)
         try store.commit(
-            .init(contentType: "manga", files: [name]), staging: staging, for: chapter,
+            .init(contentType: contentType, files: [name]), staging: staging, for: chapter,
             seriesURL: seriesURL)
         guard case .pages(let urls) = store.content(for: chapter, seriesURL: seriesURL) else {
-            Issue.record("Expected manga pages")
+            Issue.record("Expected \(contentType) pages")
             return
         }
         #expect(urls.count == 1)
         #expect(urls[0].isFileURL)
-        #expect(try Data(contentsOf: urls[0]) == Data("manga".utf8))
+        #expect(try Data(contentsOf: urls[0]) == Data(contentType.utf8))
     }
 
     @Test("A chapter missing any file it names is not reported as stored")

@@ -15,5 +15,6 @@ public enum ContentType: String, Sendable, Hashable, CaseIterable, Codable {
     case novel = "novel"
     case manhwa = "manhwa"
     case manga = "manga"
+    case comic = "comic"
     // swiftlint:enable redundant_string_enum_value
 }
