@@ -61,19 +61,42 @@ public struct ReaderPreferences: Sendable, Hashable {
     public var textScale: Double
     public var pageLayout: ReaderPageLayout
     public var mangaPageLayout: ReaderPageLayout
+    public var comicPageLayout: ReaderPageLayout
 
     public init(
         theme: ReaderTheme = .system,
         fontDesign: ReaderFontDesign = .system,
         textScale: Double = 1,
         pageLayout: ReaderPageLayout = .vertical,
-        mangaPageLayout: ReaderPageLayout = .paged
+        mangaPageLayout: ReaderPageLayout = .paged,
+        comicPageLayout: ReaderPageLayout = .paged
     ) {
         self.theme = theme
         self.fontDesign = fontDesign
         self.textScale = Self.clampedScale(textScale)
         self.pageLayout = pageLayout
         self.mangaPageLayout = mangaPageLayout
+        self.comicPageLayout = comicPageLayout
+    }
+
+    /// The layout image pages of `type` are read in. Manga and comics each keep
+    /// their own choice; manhwa uses `pageLayout`. Novels have no page layout and
+    /// read back `pageLayout`, which nothing renders.
+    public func pageLayout(for type: ContentType) -> ReaderPageLayout {
+        switch type {
+        case .novel, .manhwa: pageLayout
+        case .manga: mangaPageLayout
+        case .comic: comicPageLayout
+        }
+    }
+
+    /// Changes only the layout `type` reads in, leaving every other type's alone.
+    public mutating func setPageLayout(_ layout: ReaderPageLayout, for type: ContentType) {
+        switch type {
+        case .novel, .manhwa: pageLayout = layout
+        case .manga: mangaPageLayout = layout
+        case .comic: comicPageLayout = layout
+        }
     }
 
     public static let textScaleRange: ClosedRange<Double> = 0.8...2.0
@@ -98,6 +121,8 @@ public enum ReaderSettingKeys {
         "readr.reader.pageLayout", default: ReaderPageLayout.vertical)
     public static let mangaPageLayout = RawSettingKey(
         "readr.reader.mangaPageLayout", default: ReaderPageLayout.paged)
+    public static let comicPageLayout = RawSettingKey(
+        "readr.reader.comicPageLayout", default: ReaderPageLayout.paged)
 }
 
 extension SettingsStore {
@@ -108,7 +133,8 @@ extension SettingsStore {
             fontDesign: value(for: ReaderSettingKeys.fontDesign),
             textScale: value(for: ReaderSettingKeys.textScale),
             pageLayout: value(for: ReaderSettingKeys.pageLayout),
-            mangaPageLayout: value(for: ReaderSettingKeys.mangaPageLayout)
+            mangaPageLayout: value(for: ReaderSettingKeys.mangaPageLayout),
+            comicPageLayout: value(for: ReaderSettingKeys.comicPageLayout)
         )
     }
 
@@ -118,5 +144,6 @@ extension SettingsStore {
         set(preferences.textScale, for: ReaderSettingKeys.textScale)
         set(preferences.pageLayout, for: ReaderSettingKeys.pageLayout)
         set(preferences.mangaPageLayout, for: ReaderSettingKeys.mangaPageLayout)
+        set(preferences.comicPageLayout, for: ReaderSettingKeys.comicPageLayout)
     }
 }

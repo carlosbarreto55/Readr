@@ -106,6 +106,7 @@ struct ReaderContent: View {
     private var pageRendererID: String {
         "\(state.documentGeneration)-\(state.preferences.pageLayout.rawValue)"
             + "-\(state.preferences.mangaPageLayout.rawValue)"
+            + "-\(state.preferences.comicPageLayout.rawValue)"
     }
 
     /// Absorbs touches so no scroll or page turn can begin at the leading edge,
@@ -171,18 +172,19 @@ struct ReaderContent: View {
     }
 
     private var bottomBar: some View {
-        HStack(spacing: Spacing.large) {
+        let unit = state.route.contentType
+        return HStack(spacing: Spacing.large) {
             Button {
                 onAction(.previousChapter)
             } label: {
-                Label("Previous Chapter", systemImage: "chevron.backward")
+                Label("Previous \(unit.unitTitle)", systemImage: "chevron.backward")
             }
             .disabled(!state.hasPrevious)
 
             Button {
                 onAction(.showChapterList(true))
             } label: {
-                Label("Chapters", systemImage: "list.bullet")
+                Label(unit.pluralUnitTitle, systemImage: "list.bullet")
             }
             .disabled(state.chapters.isEmpty)
 
@@ -211,7 +213,7 @@ struct ReaderContent: View {
             Button {
                 onAction(.nextChapter)
             } label: {
-                Label("Next Chapter", systemImage: "chevron.forward")
+                Label("Next \(unit.unitTitle)", systemImage: "chevron.forward")
             }
             .disabled(!state.hasNext)
         }
@@ -319,10 +321,7 @@ private struct ReaderSettingsPanel: View {
                     Picker(
                         "Page Layout",
                         selection: Binding(
-                            get: {
-                                contentType == .manga
-                                    ? preferences.mangaPageLayout : preferences.pageLayout
-                            },
+                            get: { preferences.pageLayout(for: contentType) },
                             set: { onAction(.setPageLayout($0)) })
                     ) {
                         ForEach(ReaderPageLayout.allCases) { Text($0.title).tag($0) }

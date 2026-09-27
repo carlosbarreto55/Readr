@@ -74,6 +74,24 @@ struct PageRendererLayoutTests {
         #expect(scroll.contentSize.width >= scroll.bounds.width * 5)
     }
 
+    @Test("Comics open paged left-to-right by default")
+    func comicPagesAreLeftToRight() async throws {
+        let (window, scroll) = try await hostedScroll(pages: 5, contentType: .comic, zoom: 1)
+        defer { window.isHidden = true }
+        #expect(scroll.effectiveUserInterfaceLayoutDirection == .leftToRight)
+        #expect(scroll.contentSize.width >= scroll.bounds.width * 5)
+    }
+
+    @Test("Comics switched to vertical scroll top-to-bottom")
+    func verticalComicsScrollDown() async throws {
+        let (window, scroll) = try await hostedScroll(
+            pages: 12, contentType: .comic,
+            preferences: ReaderPreferences(comicPageLayout: .vertical), zoom: 1)
+        defer { window.isHidden = true }
+        #expect(scroll.contentSize.height > scroll.bounds.height * 10)
+        #expect(scroll.contentSize.width <= scroll.bounds.width)
+    }
+
     // MARK: Zoom
 
     /// Hosts a renderer at `zoom` and returns its scroll view once laid out.

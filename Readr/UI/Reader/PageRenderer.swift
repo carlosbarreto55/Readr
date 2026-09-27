@@ -47,7 +47,7 @@ struct PageRenderer: View {
     private static let lookahead = 3
 
     private var layout: ReaderPageLayout {
-        contentType == .manga ? preferences.mangaPageLayout : preferences.pageLayout
+        preferences.pageLayout(for: contentType)
     }
 
     var body: some View {

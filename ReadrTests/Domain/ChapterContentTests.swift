@@ -10,9 +10,10 @@ struct ChapterContentTests {
     func textIsNovel() {
         #expect(ChapterContent.text(html: "<p>Chapter one.</p>").matches(.novel))
         #expect(!ChapterContent.text(html: "<p>Chapter one.</p>").matches(.manga))
+        #expect(!ChapterContent.text(html: "<p>Chapter one.</p>").matches(.comic))
     }
 
-    @Test("Page content reports the manhwa content type")
+    @Test("Page content reports every image content type")
     func pagesAreManhwa() {
         let pages = ChapterContent.pages(imageURLs: [
             URL(string: "https://example.test/p/1.jpg")!,
@@ -20,6 +21,7 @@ struct ChapterContentTests {
         ])
         #expect(pages.matches(.manhwa))
         #expect(pages.matches(.manga))
+        #expect(pages.matches(.comic))
         #expect(!pages.matches(.novel))
     }
 

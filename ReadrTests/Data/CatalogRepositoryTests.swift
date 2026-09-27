@@ -380,8 +380,9 @@ struct CatalogRepositoryTests {
 
         let infos = await repository.sources()
 
-        #expect(infos.map(\.name) == ["AsuraScans", "FreeWebNovel", "MangaPill"])
-        #expect(infos.map(\.contentType) == [.manhwa, .novel, .manga])
+        #expect(
+            infos.map(\.name) == ["AsuraScans", "FreeWebNovel", "MangaPill", "ReadComicsOnline"])
+        #expect(infos.map(\.contentType) == [.manhwa, .novel, .manga, .comic])
     }
 
     @Test("Filter support is answered by the source, and an unknown source supports nothing")

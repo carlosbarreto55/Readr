@@ -15,6 +15,7 @@ struct ReaderPreferencesTests {
         #expect(preferences.textScale == 1)
         #expect(preferences.pageLayout == .vertical)
         #expect(preferences.mangaPageLayout == .paged)
+        #expect(preferences.comicPageLayout == .paged)
     }
 
     @Test("Preferences written are read back")
@@ -22,9 +23,31 @@ struct ReaderPreferencesTests {
         let store = InMemorySettingsStore()
         let written = ReaderPreferences(
             theme: .sepia, fontDesign: .serif, textScale: 1.5, pageLayout: .paged,
-            mangaPageLayout: .vertical)
+            mangaPageLayout: .vertical, comicPageLayout: .vertical)
         store.setReaderPreferences(written)
         #expect(store.readerPreferences == written)
+    }
+
+    @Test("Each image content type reads its own layout")
+    func layoutPerContentType() {
+        let preferences = ReaderPreferences(
+            pageLayout: .vertical, mangaPageLayout: .paged, comicPageLayout: .vertical)
+        #expect(preferences.pageLayout(for: .manhwa) == .vertical)
+        #expect(preferences.pageLayout(for: .manga) == .paged)
+        #expect(preferences.pageLayout(for: .comic) == .vertical)
+    }
+
+    @Test("Changing the comic layout leaves the manhwa and manga layouts alone")
+    func comicLayoutIsIndependent() {
+        var preferences = ReaderPreferences()
+        preferences.setPageLayout(.vertical, for: .comic)
+        #expect(preferences.comicPageLayout == .vertical)
+        #expect(preferences.pageLayout == .vertical)
+        #expect(preferences.mangaPageLayout == .paged)
+
+        preferences.setPageLayout(.paged, for: .manhwa)
+        #expect(preferences.comicPageLayout == .vertical)
+        #expect(preferences.mangaPageLayout == .paged)
     }
 
     @Test("Text scale is clamped to the offered range and step")

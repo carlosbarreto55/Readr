@@ -23,6 +23,7 @@ enum SettingsAction: Sendable, Equatable {
     case setTextScale(Double)
     case setPageLayout(ReaderPageLayout)
     case setMangaPageLayout(ReaderPageLayout)
+    case setComicPageLayout(ReaderPageLayout)
     case requestReset
     case cancelReset
     case confirmReset

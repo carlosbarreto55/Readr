@@ -13,7 +13,8 @@ struct ContentTypeTests {
         #expect(ContentType.novel.rawValue == "novel")
         #expect(ContentType.manhwa.rawValue == "manhwa")
         #expect(ContentType.manga.rawValue == "manga")
-        #expect(ContentType.allCases.count == 3)
+        #expect(ContentType.comic.rawValue == "comic")
+        #expect(ContentType.allCases.count == 4)
     }
 
     @Test("SeriesStatus has a landing place for unrecognized input")

@@ -32,7 +32,7 @@ A downloaded chapter MUST include every asset needed to render it offline.
 
 #### Scenario: An image-page chapter is downloaded
 
-- **WHEN** a manhwa chapter is downloaded
+- **WHEN** a manhwa or manga chapter is downloaded
 - **THEN** every page image SHALL be stored locally
 - **AND** the stored content SHALL reference local files, not remote URLs
 
