@@ -12,11 +12,13 @@ struct SettingsModelTests {
 
     private func make(
         _ settings: InMemorySettingsStore,
+        appearance: AppAppearanceModel? = nil,
         downloads: FakeDownloadRepository = FakeDownloadRepository(),
         systemSearch: RecordingSystemSearchRepository = RecordingSystemSearchRepository()
     ) -> SettingsModel {
         SettingsModel(
-            settings: settings, catalog: ScriptedCatalogRepository(sources: [source]),
+            settings: settings, appearance: appearance ?? AppAppearanceModel(settings: settings),
+            catalog: ScriptedCatalogRepository(sources: [source]),
             downloads: downloads, systemSearch: systemSearch, appVersion: "1.0 (1)")
     }
 
@@ -25,7 +27,7 @@ struct SettingsModelTests {
         let settings = InMemorySettingsStore()
         let model = make(settings)
 
-        model.onAction(.setTheme(.dark))
+        model.onAction(.setReaderTheme(.dark))
         model.onAction(.setFontDesign(.serif))
         model.onAction(.setTextScale(1.4))
         model.onAction(.setPageLayout(.paged))
@@ -38,6 +40,35 @@ struct SettingsModelTests {
         #expect(stored.pageLayout == .paged)
         #expect(stored.mangaPageLayout == .vertical)
         #expect(model.state.preferences == stored)
+    }
+
+    @Test("The app theme applies through the appearance model and leaves the reader theme")
+    func appThemeIsIndependent() {
+        let settings = InMemorySettingsStore()
+        settings.setReaderPreferences(ReaderPreferences(theme: .sepia))
+        let appearance = AppAppearanceModel(settings: settings)
+        let model = make(settings, appearance: appearance)
+
+        model.onAction(.setAppTheme(.dark))
+
+        #expect(model.state.appTheme == .dark)
+        #expect(appearance.theme == .dark)
+        #expect(appearance.colorScheme == .dark)
+        #expect(settings.appTheme == .dark)
+        #expect(settings.readerPreferences.theme == .sepia)
+    }
+
+    @Test("A reader theme change from Settings leaves the app theme")
+    func readerThemeIsIndependent() {
+        let settings = InMemorySettingsStore()
+        settings.setAppTheme(.light)
+        let model = make(settings)
+
+        model.onAction(.setReaderTheme(.dark))
+
+        #expect(settings.readerPreferences.theme == .dark)
+        #expect(settings.appTheme == .light)
+        #expect(model.state.appTheme == .light)
     }
 
     @Test("Appearing re-reads preferences another screen changed, and lists sources")
@@ -57,7 +88,9 @@ struct SettingsModelTests {
     func resetConfirmsThenClears() {
         let settings = InMemorySettingsStore()
         settings.setReaderPreferences(ReaderPreferences(theme: .dark))
-        let model = make(settings)
+        settings.setAppTheme(.dark)
+        let appearance = AppAppearanceModel(settings: settings)
+        let model = make(settings, appearance: appearance)
 
         model.onAction(.requestReset)
         #expect(model.state.isResetConfirmationPresented)
@@ -69,6 +102,10 @@ struct SettingsModelTests {
         #expect(!model.state.isResetConfirmationPresented)
         #expect(settings.readerPreferences == ReaderPreferences())
         #expect(model.state.preferences == ReaderPreferences())
+        #expect(settings.appTheme == .system)
+        #expect(appearance.theme == .system)
+        #expect(appearance.colorScheme == nil)
+        #expect(model.state.appTheme == .system)
     }
 
     @Test("Storage used is shown, and Delete All Downloads asks first and frees it")

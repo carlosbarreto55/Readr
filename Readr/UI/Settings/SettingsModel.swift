@@ -5,6 +5,7 @@ import Observation
 @MainActor
 final class SettingsModel {
     private let settings: any SettingsStore
+    private let appearance: AppAppearanceModel
     private let catalog: any CatalogRepository
     private let downloads: any DownloadRepository
     private let systemSearch: any SystemSearchRepository
@@ -13,16 +14,20 @@ final class SettingsModel {
 
     init(
         settings: any SettingsStore,
+        appearance: AppAppearanceModel,
         catalog: any CatalogRepository,
         downloads: any DownloadRepository,
         systemSearch: any SystemSearchRepository,
         appVersion: String
     ) {
         self.settings = settings
+        self.appearance = appearance
         self.catalog = catalog
         self.downloads = downloads
         self.systemSearch = systemSearch
-        state = SettingsState(preferences: settings.readerPreferences, appVersion: appVersion)
+        state = SettingsState(
+            appTheme: appearance.theme, preferences: settings.readerPreferences,
+            appVersion: appVersion)
     }
 
     func onAction(_ action: SettingsAction) {
@@ -30,12 +35,13 @@ final class SettingsModel {
         case .appeared:
             // Another screen — the Reader — may have changed these since.
             state.preferences = settings.readerPreferences
+            state.appTheme = appearance.theme
             Task {
                 await loadSources()
                 await loadStorage()
             }
-        case .setTheme(let theme):
-            update { $0.theme = theme }
+        case .setAppTheme, .setReaderTheme:
+            updateTheme(action)
         case .setFontDesign(let design):
             update { $0.fontDesign = design }
         case .setTextScale(let scale):
@@ -51,6 +57,8 @@ final class SettingsModel {
             // Settings only. The library and every chapter's progress live in the
             // store, which this never touches (`preferences-store`).
             settings.removeAll()
+            appearance.reload()
+            state.appTheme = appearance.theme
             state.preferences = settings.readerPreferences
         case .requestDeleteDownloads, .cancelDeleteDownloads, .confirmDeleteDownloads:
             handleDownloads(action)
@@ -90,6 +98,19 @@ final class SettingsModel {
     private func update(_ change: (inout ReaderPreferences) -> Void) {
         change(&state.preferences)
         settings.setReaderPreferences(state.preferences)
+    }
+
+    private func updateTheme(_ action: SettingsAction) {
+        switch action {
+        case .setAppTheme(let theme):
+            // Through the appearance model, so the whole app restyles now.
+            appearance.set(theme)
+            state.appTheme = theme
+        case .setReaderTheme(let theme):
+            update { $0.theme = theme }
+        default:
+            break
+        }
     }
 
     private func updateLayout(_ action: SettingsAction) {
